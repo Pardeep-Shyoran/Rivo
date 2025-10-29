@@ -10,6 +10,8 @@ const router = express.Router();
 
 router.post("/register", validationRules.registerUserValidationRules, authController.register);
 
+router.post("/login", validationRules.loginUserValidationRules, authController.login);
+
 // Route to initiate Google OAuth flow
 router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
