@@ -1,6 +1,7 @@
 import app from './src/App.js';
 import {connect} from './src/broker/rabbit.js'
 import startListener from './src/broker/listener.js';
+import config from './src/config/config.js';
 
 // Connect to RabbitMQ
 connect().then(() => {
@@ -10,7 +11,10 @@ connect().then(() => {
     console.error("Failed to connect to RabbitMQ", err);
 });
 
+const PORT = config.PORT;
 
-app.listen(3000, ()=> {
-        console.log("server is running on post 3000");
+// Start the server
+
+app.listen(PORT, ()=> {
+        console.log(`server is running on port ${PORT}`);
 })

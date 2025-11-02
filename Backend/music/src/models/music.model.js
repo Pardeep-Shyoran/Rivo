@@ -13,11 +13,11 @@ const musicSchema = new mongoose.Schema(
     artistId: {
       type: mongoose.Schema.Types.ObjectId,
     },
-    musicUrl: {
+    musicKey: {
       type: String,
       required: true,
     },
-    coverImageUrl:{
+    coverImageKey:{
         type: String,
         required: true,
     }

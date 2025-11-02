@@ -6,7 +6,10 @@ import { publishToQueue } from '../broker/rabbit.js';
 
 
 export async function register(req, res) {
-    const {email, password, fullName:{firstName, lastName}} = req.body;
+    // const {email, password, fullName:{firstName, lastName}, role='user'} = req.body;
+    const { email, password, fullName = {}, role = 'user' } = req.body;
+const { firstName, lastName } = fullName;
+
 
     const isUserAlreadyExists = await userModel.findOne({email});
 
@@ -22,12 +25,14 @@ export async function register(req, res) {
         fullName:{
             firstName,
             lastName,
-        }
+        },
+        role,
     })
 
     const token = jwt.sign({
         id: user._id,
         role: user.role,
+        fullName: user.fullName,
     }, config.JWT_SECRET, {expiresIn: "2d"})
 
     await publishToQueue("user_created", {
@@ -69,6 +74,7 @@ export async function login(req, res) {
     const token = jwt.sign({
         id: user._id,
         role: user.role,
+        fullName: user.fullName,
     }, config.JWT_SECRET, {expiresIn: "2d"})
 
     res.cookie("token", token);
@@ -100,6 +106,7 @@ export async function googleAuthCallback(req, res) {
         const token = jwt.sign({
             id: isUserAlreadyExists._id,
             role: isUserAlreadyExists.role,
+            fullName: isUserAlreadyExists.fullName,
         }, config.JWT_SECRET, {expiresIn: "2d"})
 
         res.cookie("token", token);
@@ -118,7 +125,8 @@ export async function googleAuthCallback(req, res) {
 
     const token = jwt.sign({
         id: newUser._id,
-        role: newUser.role
+        role: newUser.role,
+        fullName: newUser.fullName,
     }, config.JWT_SECRET, {expiresIn: "2d"})
 
     res.cookie("token", token);
