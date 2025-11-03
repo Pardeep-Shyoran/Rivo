@@ -17,10 +17,10 @@ const musicSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    coverImageKey:{
-        type: String,
-        required: true,
-    }
+    coverImageKey: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
