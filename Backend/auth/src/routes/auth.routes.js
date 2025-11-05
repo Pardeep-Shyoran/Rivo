@@ -1,6 +1,7 @@
 import express from 'express';
 import * as authController from '../controllers/auth.controller.js';
 import * as validationRules from '../middlewares/validation.middleware.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
 import passport from 'passport';
 
 
@@ -22,5 +23,8 @@ router.get('/google/callback',
   passport.authenticate('google', { session: false }),
   authController.googleAuthCallback
 );
+
+// Get current logged-in user
+router.get('/me', authMiddleware, authController.getCurrentUser);
 
 export default router;

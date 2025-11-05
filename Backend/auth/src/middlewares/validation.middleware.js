@@ -10,7 +10,7 @@ async function validate(req, res, next) {
 }
 
 export const registerUserValidationRules = [
-    body('email').trim().normalizeEmail().isEmail().withMessage("Invalid email Address!"),
+    body('email').trim().isEmail().withMessage("Invalid email Address!"),
     body('password').trim().isLength({ min: 8}).withMessage("Password must be atleast 8 Character long"),
     body('fullName.firstName').trim().notEmpty().withMessage("First Name is Required!"),
     body('fullName.lastName').trim().notEmpty().withMessage("Last Name is Required!"),
@@ -18,7 +18,7 @@ export const registerUserValidationRules = [
 ]
 
 export const loginUserValidationRules = [
-    body('email').trim().normalizeEmail().isEmail().withMessage("Invalid email Address!"),
+    body('email').trim().isEmail().withMessage("Invalid email Address!"),
     body('password').trim().notEmpty().withMessage("Password is Required!"),
     validate
 ]

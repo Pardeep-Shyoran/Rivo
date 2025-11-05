@@ -160,14 +160,25 @@ export async function createPlaylist(req, res) {
 export async function getPlaylists(req, res) {
 
   try {
-    const playlists = await playlistModel.find({ artistId: req.user.id }).lean();
+    const playlistsDocs = await playlistModel.find({}).lean();
 
-    // for(let playlist of playlists) {
-    //   for(let music of playlist.musics) {
-    //     music.musicUrl = await getPresignedUrl(music.musicKey);
-    //     music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
-    //   }
-    // }
+    const playlists = [];
+
+    for(let playlist of playlistsDocs) {
+      const musics = [];
+      
+      for(let musicId of playlist.musics) {
+        const music = await musicModel.findById(musicId).lean();
+        if (music) {
+          music.musicUrl = await getPresignedUrl(music.musicKey);
+          music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+          musics.push(music);
+        }
+      }
+      
+      playlist.musics = musics;
+      playlists.push(playlist);
+    }
 
     return res.status(200).json({
       message: "Playlists fetched successfully",
@@ -215,6 +226,24 @@ export async function getPlaylistById(req, res) {
     console.error("Error fetching playlist by ID:", err);
     res.status(500).json({
       message: "Error fetching playlist by ID",
+      error: err.message,
+    });
+  }
+}
+
+export async function getArtistPlaylists(req, res) {
+
+  try {
+    const playlists = await playlistModel.find({ artistId: req.user.id }).lean();
+
+    return res.status(200).json({
+      message: "Artist playlists fetched successfully",
+      playlists,
+    });
+  } catch (err) {
+    console.error("Error fetching artist playlists:", err);
+    res.status(500).json({
+      message: "Error fetching artist playlists",
       error: err.message,
     });
   }

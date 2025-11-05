@@ -17,8 +17,29 @@ router.get(
   musicController.getAllMusics
 );
 
+// Get music details by ID (route for authenticated users)
+// GET /api/music/get-details/:id
+router.get(
+  "/get-details/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.getMusicById
+);
 
-router.get('/get-details/:id', authMiddleware.authUserMiddleware, musicController.getMusicById);
+// Get all playlists (route for authenticated users)
+// GET /api/music/playlist
+router.get(
+  "/playlist",
+  authMiddleware.authUserMiddleware,
+  musicController.getPlaylists
+);
+
+// Get a specific playlist by ID (route for authenticated users)
+// GET /api/music/playlist/:id
+router.get(
+  "/playlist/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.getPlaylistById
+);
 
 // Upload music file and cover image (route for artists only)
 // POST /api/music/upload
@@ -33,9 +54,9 @@ router.post(
 );
 
 // Get all music tracks (route for artists only)
-// GET /api/music/artist-musics
+// GET /api/music/artist/musics
 router.get(
-  "/artist-musics",
+  "/artist/musics",
   authMiddleware.authArtistMiddleware,
   musicController.getArtistMusics
 );
@@ -48,20 +69,12 @@ router.post(
   musicController.createPlaylist
 );
 
-// Get all playlists (route for authenticated users)
-// GET /api/music/playlists
+// Get all playlists created by the artist (route for artists only)
+// GET /api/music/artist/playlist
 router.get(
-  "/playlist",
-  authMiddleware.authUserMiddleware,
-  musicController.getPlaylists
-);
-
-// Get a specific playlist by ID (route for authenticated users)
-// GET /api/music/playlist/:id
-router.get(
-  "/playlist/:id",
-  authMiddleware.authUserMiddleware,
-  musicController.getPlaylistById
+  "/artist/playlist",
+  authMiddleware.authArtistMiddleware,
+  musicController.getArtistPlaylists
 );
 
 export default router;
