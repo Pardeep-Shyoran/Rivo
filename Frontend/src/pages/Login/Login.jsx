@@ -4,10 +4,12 @@ import { Helmet } from "react-helmet";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "../../api/axiosconfig";
+import axios from "../../api/axiosAuthConfig";
+import useLoader from "../../contexts/useLoader";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader();
 
   const {
     register,
@@ -57,26 +59,27 @@ const Login = () => {
     : "";
 
   const onSubmit = async (data) => {
-    // Frontend-only: no auth logic here
-    // You can wire this up to your API later
-    // console.log("Login form submitted:", data);
-
+    showLoader();
     try {
       const response = await axios.post("/api/auth/login", data);
-      // console.log('Login successful:', response.data);
       toast.success(response.data.message || "Login successful!");
+      reset();
+      if (response.data.user.role === "artist") {
+        navigate("/artist/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast.error(error.response?.data.message || "Login failed!");
+    } finally {
+      hideLoader();
     }
-
-    navigate("/");
-    reset();
   };
 
   const onContinueWithGoogle = () => {
     window.location.href = `${
-      import.meta.env.VITE_BACKEND_URL
+      import.meta.env.VITE_BACKEND_AUTH_URL
     }/api/auth/google`;
   };
 

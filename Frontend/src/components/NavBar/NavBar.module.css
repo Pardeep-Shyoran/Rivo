@@ -1,0 +1,75 @@
+.navBar {
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 2px; /* for nice scrollbar spacing */
+}
+
+.collapsed .navList {
+	align-items: center;
+}
+
+.collapsed .navLink {
+	justify-content: center;
+	gap: 0;
+	padding: 0.6rem 0.5rem;
+}
+
+.navList {
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.navItem { position: relative; }
+
+.navLink {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0.65rem 0.85rem 0.65rem 0.9rem;
+	border-radius: 10px;
+	color: color-mix(in oklab, var(--text-color) 92%, transparent);
+	text-decoration: none;
+	font-size: 0.98rem;
+	line-height: 1.25;
+	letter-spacing: 0.1px;
+	position: relative;
+	transition: background 0.25s ease, color 0.2s ease, transform 0.12s ease;
+}
+
+.navLink::before {
+	content: "";
+	position: absolute;
+	left: 6px;
+	width: 3px;
+	height: 0;
+	border-radius: 2px;
+	background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+	transition: height 0.25s ease;
+}
+
+.navLink:hover {
+	background:
+		linear-gradient(180deg, rgba(79,70,229,0.10), rgba(59,130,246,0.08))
+		,
+		var(--background-color-opacity);
+	transform: translateX(1px);
+}
+
+.active {
+	background: linear-gradient(180deg, rgba(79,70,229,0.18), rgba(59,130,246,0.14));
+	outline: 1px solid color-mix(in oklab, var(--border-color) 60%, transparent);
+	box-shadow: 0 8px 22px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02) inset;
+}
+
+.active::before {
+	height: 70%;
+}
+
+.navLink:focus-visible {
+	outline: 2px solid color-mix(in oklab, var(--secondary-color) 60%, transparent);
+	outline-offset: 2px;
+}
+
+.label { white-space: nowrap; }

@@ -1,0 +1,20 @@
+.pageWrapper {
+  min-height: 100vh;
+  transition: padding-bottom 0.3s ease;
+}
+
+.pageWrapper.withPlayer {
+  padding-bottom: 3rem;
+}
+
+@media (max-width: 1024px) {
+  .pageWrapper.withPlayer {
+    padding-bottom: 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pageWrapper.withPlayer {
+    padding-bottom: 160px;
+  }
+}

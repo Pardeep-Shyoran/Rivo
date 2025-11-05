@@ -1,0 +1,97 @@
+
+.home {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem 1rem 3rem 1rem;
+	min-height: 100vh;
+	display: flex;
+	gap: 2rem;
+}
+
+.home.withPlayer {
+	padding-bottom: 3rem;
+}
+
+.content {
+	flex: 1;
+	width: 100%;
+}
+
+.heading {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: var(--text-color);
+	margin-bottom: 2rem;
+	text-align: center;
+}
+
+.section {
+	margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: var(--text-color2);
+	margin-bottom: 1.2rem;
+	letter-spacing: 0.5px;
+}
+
+.musicGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1.5rem;
+}
+
+.playlistGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 1.5rem;
+}
+
+.loader {
+	text-align: center;
+	font-size: 1.2rem;
+	color: var(--text-color4);
+	margin-top: 3rem;
+}
+
+.error {
+	text-align: center;
+	color: #ff4d4f;
+	font-size: 1.1rem;
+	margin-top: 2rem;
+}
+
+.empty {
+	text-align: center;
+	color: var(--text-color5);
+	font-size: 1rem;
+	padding: 2rem 0;
+}
+
+@media (max-width: 600px) {
+	.heading {
+		font-size: 2rem;
+	}
+	.sectionTitle {
+		font-size: 1.1rem;
+	}
+	.musicGrid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+	.playlistGrid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+	.home {
+		padding: 1rem 0.5rem 2rem 0.5rem;
+	}
+}
+
+@media (max-width: 1024px) {
+	.home.withPlayer {
+		padding-bottom: 180px;
+	}
+}

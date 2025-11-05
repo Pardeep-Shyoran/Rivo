@@ -1,0 +1,117 @@
+.playlistCard {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(59, 130, 246, 0.05));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.playlistCard:hover {
+  box-shadow: 0 10px 30px var(--box-shadow-color);
+  border-color: var(--primary-color);
+}
+
+.playlistHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 8px;
+}
+
+.playlistHeader:hover {
+  background-color: rgba(79, 70, 229, 0.05);
+}
+
+.playlistHeader:active {
+  background-color: rgba(79, 70, 229, 0.1);
+}
+
+.playlistIcon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 70, 229, 0.1);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.playlistInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.playlistMusicsList {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.playlistMusicsList > div {
+  min-width: 200px;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+
+.playlistMusicsList::-webkit-scrollbar {
+  height: 6px;
+}
+
+.playlistMusicsList::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.playlistMusicsList::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.3);
+  border-radius: 3px;
+}
+
+.playlistMusicsList::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.5);
+}
+
+.playlistTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.playlistCount {
+  font-size: 0.9rem;
+  color: var(--text-color5);
+}
+
+.chevron {
+  font-size: 1.2rem;
+  color: var(--text-color5);
+  transition: transform 0.3s ease;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.chevronExpanded {
+  transform: rotate(0deg);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .playlistIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2.5rem;
+  }
+}

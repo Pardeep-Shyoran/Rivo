@@ -1,0 +1,62 @@
+.statCard {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px var(--box-shadow-color);
+  border-color: var(--primary-color);
+}
+
+.statIcon {
+  font-size: 3rem;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 134, 21, 0.1);
+  border-radius: 12px;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+.statLabel {
+  color: var(--text-color5);
+  font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .statCard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .statValue {
+    font-size: 1.75rem;
+  }
+
+  .statIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2.5rem;
+  }
+}

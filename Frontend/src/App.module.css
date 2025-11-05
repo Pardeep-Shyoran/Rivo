@@ -1,0 +1,23 @@
+/* Layout offsets for fixed left sidebar */
+.appLayout {
+  min-height: 100vh;
+}
+
+.mainContent {
+  margin-left: var(--sidebar-width, 240px);
+  padding: 1rem;
+}
+
+html[data-sidebar='collapsed'] .mainContent {
+  margin-left: var(--sidebar-width-collapsed, 72px);
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 0;
+    padding: 0.75rem;
+  }
+  html[data-sidebar='collapsed'] .mainContent {
+    margin-left: 0;
+  }
+}

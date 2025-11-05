@@ -1,0 +1,118 @@
+.musicCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.musicCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px var(--box-shadow-color);
+  border-color: var(--text-color2);
+}
+
+.musicCover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.musicCover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.musicCard:hover .musicCover img {
+  transform: scale(1.1);
+}
+
+.musicOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.musicCard:hover .musicOverlay {
+  opacity: 1;
+}
+
+.playBtn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--text-color2);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playBtn:hover {
+  transform: scale(1.1);
+  background: #ff6b35;
+}
+
+.musicInfo {
+  padding: 1rem;
+}
+
+.musicTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.musicArtist {
+  font-size: 0.9rem;
+  color: var(--text-color5);
+  margin-bottom: 0.5rem;
+}
+
+.musicDate {
+  font-size: 0.85rem;
+  color: var(--text-color4);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .musicTitle {
+    font-size: 1rem;
+  }
+
+  .musicArtist,
+  .musicDate {
+    font-size: 0.8rem;
+  }
+
+  .musicInfo {
+    padding: 0.75rem;
+  }
+
+  .playBtn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+}

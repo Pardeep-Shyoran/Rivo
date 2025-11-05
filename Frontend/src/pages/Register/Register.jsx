@@ -4,10 +4,12 @@ import { Helmet } from "react-helmet";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "../../api/axiosconfig";
+import axios from "../../api/axiosAuthConfig";
+import useLoader from "../../contexts/useLoader";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader();
 
   const {
     register,
@@ -62,26 +64,29 @@ const Register = () => {
     : "";
 
   const onSubmit = async (data) => {
-    // TODO: replace with real submit logic (API call)
-    // console.log("Register form submitted:", data);
-
+    showLoader();
     try {
       const response = await axios.post("/api/auth/register", data);
-      // console.log('Registration successful:', response.data);
       toast.success(response.data.message || "Registration successful!");
+      reset();
+      
+      if (response.data.user.role === "artist") {
+        navigate("/artist/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Registration error:", error);
       toast.error(error.response?.data.message || "Registration failed!");
+    } finally {
+      hideLoader();
     }
-
-    navigate("/");
-    reset();
   };
 
   const onContinueWithGoogle = () => {
     // placeholder for OAuth flow
     window.location.href = `${
-      import.meta.env.VITE_BACKEND_URL
+      import.meta.env.VITE_BACKEND_AUTH_URL
     }/api/auth/google`;
   };
 

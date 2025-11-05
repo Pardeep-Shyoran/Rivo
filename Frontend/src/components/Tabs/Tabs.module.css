@@ -1,0 +1,66 @@
+/* Tabs Container */
+.tabsContainer {
+  width: 100%;
+}
+
+/* Tabs Header */
+.tabsHeader {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border-color);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabsHeader::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Tab Button */
+.tab {
+  padding: 1rem 2rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-color5);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-family: var(--font-family4);
+}
+
+.tab:hover {
+  color: var(--text-color);
+}
+
+.activeTab {
+  color: var(--text-color2);
+  border-bottom-color: var(--text-color2);
+}
+
+/* Tab Content */
+.tabContent {
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tabsHeader {
+    gap: 0.5rem;
+  }
+
+  .tab {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+}
