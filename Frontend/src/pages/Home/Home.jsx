@@ -29,17 +29,41 @@ const Home = () => {
       setLoading(true);
       setError(null);
       try {
-        const [userRes, musicRes, playlistRes] = await Promise.all([
+        const results = await Promise.allSettled([
           axiosAuth.get("/api/auth/me"),
           axiosMusic.get(`/api/music/?skip=0&limit=${SONGS_LIMIT}`),
-          axiosMusic.get("/api/music/playlist"), // Already returns populated music objects
+          axiosMusic.get("/api/music/playlist"),
         ]);
-        setUser(userRes.data.user || null);
-        setMusics(musicRes.data.musics || []);
-        setHasMore((musicRes.data.musics || []).length === SONGS_LIMIT);
-        setPlaylists(playlistRes.data.playlists || []);
-      } catch {
-        setError("Failed to load data");
+
+        // Auth (optional)
+        const userRes = results[0];
+        if (userRes.status === "fulfilled") {
+          setUser(userRes.value.data.user || null);
+        } else {
+          setUser(null);
+        }
+
+        // Musics (required for UI)
+        const musicRes = results[1];
+        if (musicRes.status === "fulfilled") {
+          const list = musicRes.value.data.musics || [];
+          setMusics(list);
+          setHasMore(list.length === SONGS_LIMIT);
+        }
+
+        // Playlists (optional but shown in UI)
+        const playlistRes = results[2];
+        if (playlistRes.status === "fulfilled") {
+          setPlaylists(playlistRes.value.data.playlists || []);
+        }
+
+        // Set error only if both main datasets failed
+        if (
+          (musicRes.status === "rejected") &&
+          (playlistRes.status === "rejected")
+        ) {
+          setError("Failed to load data");
+        }
       } finally {
         setLoading(false);
       }

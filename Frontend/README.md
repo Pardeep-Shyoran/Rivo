@@ -14,3 +14,24 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+What a User Dashboard Could Include:
+Based on the artist dashboard structure, a user dashboard could have:
+
+Personal Library: User's liked/favorited songs
+Personal Playlists: User-created playlists (not artist playlists)
+Statistics:
+Total songs liked
+Number of playlists created
+Recently played tracks
+Actions:
+Create personal playlists
+Browse and add songs to playlists
+View listening history
+Would you like me to:
+
+Create the User Dashboard structure with pages and components?
+Add backend API endpoints for user-specific features (liked songs, user playlists, etc.)?
+Update the routing to include the user dashboard?
+Add navigation to distinguish between artist and regular user views?
