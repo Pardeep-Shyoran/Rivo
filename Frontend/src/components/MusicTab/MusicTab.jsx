@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import MusicCard from '../MusicCard/MusicCard';
-import { useState, useEffect } from 'react';
 import EmptyState from '../EmptyState/EmptyState';
 import Loader from '../Loader/Loader';
 import styles from './MusicTab.module.css';
@@ -9,20 +8,9 @@ import styles from './MusicTab.module.css';
 // isLoading: optional prop to show loading state from parent
 const MusicTab = ({ musics, isLoading = false }) => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
 
-  // Handle loading state - simulate processing time for data
-  useEffect(() => {
-    setLoading(true);
-    // Use a small timeout to show loader during data processing
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [musics]);
-
-  // Show loader if explicitly loading from parent or internal loading
-  if (isLoading || loading) {
+  // Show loader if explicitly loading from parent
+  if (isLoading) {
     return <Loader message="Loading music..." inline />;
   }
 

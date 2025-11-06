@@ -17,8 +17,11 @@ export const MusicPlayerProvider = ({ children }) => {
   const lastNavTimeRef = useRef(0);
   const userPausedRef = useRef(false);
   const currentIdRef = useRef(null);
+  const isPlayingRef = useRef(false);
+  const lastSaveTimeRef = useRef(0);
+  const lastUpdateTimeRef = useRef(0);
 
-  console.log('MusicPlayerProvider state:', { currentMusic: currentMusic?._id, isPlaying });
+  // console.log('MusicPlayerProvider state:', { currentMusic: currentMusic?._id, isPlaying });
 
   // Initialize audio element and restore previous session if any
   useEffect(() => {
@@ -29,23 +32,33 @@ export const MusicPlayerProvider = ({ children }) => {
     // Event listeners
     const handleTimeUpdate = () => {
       const t = audio.currentTime;
-      setCurrentTime(t);
-      // Persist progress periodically
-      try {
-        const prev = JSON.parse(sessionStorage.getItem(RESTORE_KEY) || '{}');
-        if (prev && (prev.musicId || currentMusic?._id)) {
-          sessionStorage.setItem(
-            RESTORE_KEY,
-            JSON.stringify({
-              musicId: currentMusic?._id || prev.musicId,
-              currentTime: t,
-              isPlaying,
-              volume: audio.volume,
-            })
-          );
+      const now = Date.now();
+      
+      // Throttle UI updates to ~10 times per second (every 100ms)
+      if (now - lastUpdateTimeRef.current > 100) {
+        lastUpdateTimeRef.current = now;
+        setCurrentTime(t);
+      }
+      
+      // Persist progress periodically (throttle to once every 2 seconds)
+      if (now - lastSaveTimeRef.current > 2000) {
+        lastSaveTimeRef.current = now;
+        try {
+          const musicId = currentIdRef.current;
+          if (musicId) {
+            sessionStorage.setItem(
+              RESTORE_KEY,
+              JSON.stringify({
+                musicId,
+                currentTime: t,
+                isPlaying: isPlayingRef.current,
+                volume: audio.volume,
+              })
+            );
+          }
+        } catch {
+          // ignore storage write errors
         }
-      } catch {
-        // ignore storage write errors
       }
     };
     const handleDurationChange = () => setDuration(audio.duration);
@@ -122,13 +135,12 @@ export const MusicPlayerProvider = ({ children }) => {
       audio.removeEventListener('pause', handlePause);
       audio.pause();
     };
-    // We intentionally run this once on mount; dependencies are internalized
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep refs updated with latest values to avoid stale closures
   useEffect(() => { userPausedRef.current = userPaused; }, [userPaused]);
   useEffect(() => { currentIdRef.current = currentMusic?._id || null; }, [currentMusic]);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
   // Play music
   const playMusic = async (music) => {
@@ -146,19 +158,13 @@ export const MusicPlayerProvider = ({ children }) => {
         setUserPaused(false);
       }
     } else {
-      // Play new music - fetch full details if musicUrl is not available
+      // Play new music - music object already has musicUrl from API
       try {
         setLoading(true);
-        let musicData = music;
         
-        // If music doesn't have musicUrl, fetch it from API
-        if (!music.musicUrl) {
-          const response = await axiosMusic.get(`/api/music/get-details/${music._id}`);
-          musicData = response.data.music;
-        }
-        
-        setCurrentMusic(musicData);
-        audio.src = musicData.musicUrl;
+        // Music object should already have musicUrl and coverImageUrl from API
+        setCurrentMusic(music);
+        audio.src = music.musicUrl;
         audio.volume = volume;
         
         // Wait for audio to be ready and then play
@@ -173,7 +179,7 @@ export const MusicPlayerProvider = ({ children }) => {
               try {
                 sessionStorage.setItem(
                   RESTORE_KEY,
-                  JSON.stringify({ musicId: musicData._id, currentTime: audio.currentTime || 0, isPlaying: true, volume: audio.volume })
+                  JSON.stringify({ musicId: music._id, currentTime: audio.currentTime || 0, isPlaying: true, volume: audio.volume })
                 );
               } catch {
                 // ignore storage errors
@@ -186,7 +192,7 @@ export const MusicPlayerProvider = ({ children }) => {
             });
         }
       } catch (error) {
-        console.error('Error fetching music details:', error);
+        console.error('Error playing music:', error);
         setLoading(false);
       }
     }

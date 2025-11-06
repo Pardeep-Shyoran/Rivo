@@ -32,7 +32,7 @@ const Home = () => {
         const [userRes, musicRes, playlistRes] = await Promise.all([
           axiosAuth.get("/api/auth/me"),
           axiosMusic.get(`/api/music/?skip=0&limit=${SONGS_LIMIT}`),
-          axiosMusic.get("/api/music/playlist"),
+          axiosMusic.get("/api/music/playlist"), // Already returns populated music objects
         ]);
         setUser(userRes.data.user || null);
         setMusics(musicRes.data.musics || []);
@@ -119,7 +119,7 @@ const Home = () => {
                   content: (
                     <section className={styles.section}>
                       <h2 className={styles.sectionTitle}>Playlists</h2>
-                      <PlaylistTab playlists={playlists} musics={musics} />
+                      <PlaylistTab playlists={playlists} />
                     </section>
                   ),
                 },

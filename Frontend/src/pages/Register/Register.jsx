@@ -23,7 +23,7 @@ const Register = () => {
       email: "",
       fullName: { firstName: "", lastName: "" },
       password: "",
-      role: "user",
+      role: "listener",
     },
   });
 
@@ -281,12 +281,12 @@ const Register = () => {
               <button
                 type="button"
                 className={`${styles.segmentedButton} ${
-                  role === "user" ? styles.active : ""
+                  role === "listener" ? styles.active : ""
                 }`}
-                onClick={() => setValue("role", "user")}
-                aria-pressed={role === "user"}
+                onClick={() => setValue("role", "listener")}
+                aria-pressed={role === "listener"}
               >
-                User
+                Listener
               </button>
 
               <button

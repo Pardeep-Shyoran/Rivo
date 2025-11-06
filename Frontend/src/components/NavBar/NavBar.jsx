@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useUser } from '../../contexts/useUser'
 import styles from './NavBar.module.css'
 
 // Inline SVG icons to avoid extra dependencies
@@ -33,20 +34,42 @@ const RegisterIcon = () => (
   </svg>
 )
 
-const routes = [
-  { to: '/', label: 'Home', icon: HomeIcon },
-  { to: '/artist/dashboard', label: 'Artist Dashboard', icon: DashboardIcon },
-  { to: '/artist/upload', label: 'Upload Music', icon: UploadIcon },
-  { to: '/artist/create-playlist', label: 'Create Playlist', icon: PlaylistIcon },
-  { to: '/login', label: 'Login', icon: LoginIcon },
-  { to: '/register', label: 'Register', icon: RegisterIcon },
+const allRoutes = [
+  { to: '/', label: 'Home', icon: HomeIcon, requiresAuth: false, publicOnly: false, requiredRole: null },
+  { to: '/artist/dashboard', label: 'Artist Dashboard', icon: DashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
+  { to: '/artist/upload', label: 'Upload Music', icon: UploadIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
+  { to: '/artist/create-playlist', label: 'Create Playlist', icon: PlaylistIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
+  { to: '/login', label: 'Login', icon: LoginIcon, requiresAuth: false, publicOnly: true, requiredRole: null },
+  { to: '/register', label: 'Register', icon: RegisterIcon, requiresAuth: false, publicOnly: true, requiredRole: null },
 ]
 
 const NavBar = ({ collapsed = false }) => {
+  const { user } = useUser();
+
+  // Filter routes based on authentication status and role
+  const visibleRoutes = allRoutes.filter(route => {
+    // If route is public only (login/register), hide when user is logged in
+    if (route.publicOnly && user) {
+      return false;
+    }
+    
+    // If route requires authentication, hide when user is not logged in
+    if (route.requiresAuth && !user) {
+      return false;
+    }
+    
+    // If route requires specific role, check if user has that role
+    if (route.requiredRole && (!user || user.role !== route.requiredRole)) {
+      return false;
+    }
+    
+    return true;
+  });
+
   return (
     <nav className={`${styles.navBar} ${collapsed ? styles.collapsed : ''}`} aria-label="Primary">
       <ul className={styles.navList}>
-        {routes.map(({ to, label, icon }) => (
+        {visibleRoutes.map(({ to, label, icon }) => (
           <li key={to} className={styles.navItem}>
             <NavLink
               to={to}

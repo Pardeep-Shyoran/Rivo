@@ -16,7 +16,7 @@ const MusicPlayer = () => {
     closePlayer,
   } = useMusicPlayer();
 
-  console.log('MusicPlayer render:', { currentMusic: currentMusic?._id, isPlaying });
+  // console.log('MusicPlayer render:', { currentMusic: currentMusic?._id, isPlaying });
 
   if (!currentMusic) {
     return null;
