@@ -27,4 +27,7 @@ router.get('/google/callback',
 // Get current logged-in user
 router.get('/me', authMiddleware, authController.getCurrentUser);
 
+// Logout Route
+router.post('/logout', authMiddleware, authController.logout);
+
 export default router;

@@ -207,8 +207,8 @@ export async function getPlaylistById(req, res) {
 
     const musics = [];
 
-    for (let music of playlistDoc.musics) {
-      const music = await musicModel.findById(music).lean();
+    for (let musicId of playlistDoc.musics) {
+      const music = await musicModel.findById(musicId).lean();
       if (music) {
         music.musicUrl = await getPresignedUrl(music.musicKey);
         music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
@@ -234,7 +234,25 @@ export async function getPlaylistById(req, res) {
 export async function getArtistPlaylists(req, res) {
 
   try {
-    const playlists = await playlistModel.find({ artistId: req.user.id }).lean();
+    const playlistsDocs = await playlistModel.find({ artistId: req.user.id }).lean();
+
+    const playlists = [];
+
+    for(let playlist of playlistsDocs) {
+      const musics = [];
+      
+      for(let musicId of playlist.musics) {
+        const music = await musicModel.findById(musicId).lean();
+        if (music) {
+          music.musicUrl = await getPresignedUrl(music.musicKey);
+          music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+          musics.push(music);
+        }
+      }
+      
+      playlist.musics = musics;
+      playlists.push(playlist);
+    }
 
     return res.status(200).json({
       message: "Artist playlists fetched successfully",

@@ -5,8 +5,8 @@ import config from "../config/config.js";
 import { publishToQueue } from "../broker/rabbit.js";
 
 export async function register(req, res) {
-  // const {email, password, fullName:{firstName, lastName}, role='user'} = req.body;
-  const { email, password, fullName = {}, role = "user" } = req.body;
+  // const {email, password, fullName:{firstName, lastName}, role='listener'} = req.body;
+  const { email, password, fullName = {}, role = "listener" } = req.body;
   const { firstName, lastName } = fullName;
 
   const isUserAlreadyExists = await userModel.findOne({ email });
@@ -132,6 +132,14 @@ export async function googleAuthCallback(req, res) {
     },
   });
 
+  // Send notification for new Google user registration
+  await publishToQueue("user_created", {
+    id: newUser._id,
+    email: newUser.email,
+    fullName: newUser.fullName,
+    role: newUser.role,
+  });
+
   const token = jwt.sign(
     {
       id: newUser._id,
@@ -168,4 +176,9 @@ export async function getCurrentUser(req, res) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
+}
+
+export async function logout(req, res) {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logged out successfully" });
 }

@@ -26,8 +26,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "artist"],
-      default: "user",
+      enum: ["listener", "artist"],
+      default: "listener",
     },
   },
   { timestamps: true }
