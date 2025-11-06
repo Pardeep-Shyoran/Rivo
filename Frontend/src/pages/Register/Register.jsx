@@ -69,6 +69,14 @@ const Register = () => {
       const response = await axios.post("/api/auth/register", data);
       toast.success(response.data.message || "Registration successful!");
       reset();
+      // Persist JWT for cross-service Authorization fallback
+      if (response.data.token) {
+        try {
+          localStorage.setItem('rivo_jwt', response.data.token);
+        } catch {
+          // ignore storage errors
+        }
+      }
       
       if (response.data.user.role === "artist") {
         navigate("/artist/dashboard");

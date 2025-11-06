@@ -2,7 +2,11 @@ import jwt from "jsonwebtoken";
 import config from "../config/config.js";
 
 export async function authArtistMiddleware(req, res, next) {
-  const token = req.cookies.token;
+  let token = req.cookies.token;
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!token && authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
@@ -22,7 +26,11 @@ export async function authArtistMiddleware(req, res, next) {
 }
 
 export async function authUserMiddleware(req, res, next) {
-  const token = req.cookies.token;
+  let token = req.cookies.token;
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!token && authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });

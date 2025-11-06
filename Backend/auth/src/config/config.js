@@ -10,6 +10,7 @@ const _config = {
     CLIENT_SECRET: process.env.CLIENT_SECRET,
     RABBITMQ_URI: process.env.RABBITMQ_URI,
     FRONTEND_URL: process.env.FRONTEND_URL,
+    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN, // e.g., .onrender.com or your custom apex domain
     NODE_ENV: process.env.NODE_ENV || 'development',
 }
 

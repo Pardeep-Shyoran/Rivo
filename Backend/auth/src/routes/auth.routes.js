@@ -27,6 +27,9 @@ router.get('/google/callback',
 // Get current logged-in user
 router.get('/me', authMiddleware, authController.getCurrentUser);
 
+// Retrieve JWT token from cookie (for clients to use as Bearer when needed)
+router.get('/token', authMiddleware, authController.getToken);
+
 // Logout Route
 router.post('/logout', authMiddleware, authController.logout);
 

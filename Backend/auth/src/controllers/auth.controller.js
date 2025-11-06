@@ -49,12 +49,16 @@ export async function register(req, res) {
     secure: config.NODE_ENV === 'production',
     sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+      ? { domain: config.COOKIE_DOMAIN }
+      : {}),
   };
 
   res.cookie("token", token, cookieOptions);
 
   res.status(201).json({
     message: `${user.fullName.firstName} ${user.fullName.lastName}, Account Created Successfully`,
+    token,
     user: {
       id: user._id,
       email: user.email,
@@ -98,12 +102,16 @@ export async function login(req, res) {
     secure: config.NODE_ENV === 'production',
     sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+      ? { domain: config.COOKIE_DOMAIN }
+      : {}),
   };
 
   res.cookie("token", token, cookieOptions);
 
   res.status(200).json({
     message: `${user.fullName.firstName} ${user.fullName.lastName}, Logged In Successfully`,
+    token,
     user: {
       id: user._id,
       email: user.email,
@@ -137,6 +145,9 @@ export async function googleAuthCallback(req, res) {
       secure: config.NODE_ENV === 'production',
       sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+      ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+        ? { domain: config.COOKIE_DOMAIN }
+        : {}),
     };
 
     res.cookie("token", token, cookieOptions);
@@ -176,6 +187,9 @@ export async function googleAuthCallback(req, res) {
     secure: config.NODE_ENV === 'production',
     sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+      ? { domain: config.COOKIE_DOMAIN }
+      : {}),
   };
 
   res.cookie("token", token, cookieOptions);
@@ -211,8 +225,25 @@ export async function logout(req, res) {
     httpOnly: true,
     secure: config.NODE_ENV === 'production',
     sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+      ? { domain: config.COOKIE_DOMAIN }
+      : {}),
   };
   
   res.clearCookie("token", cookieOptions);
   res.status(200).json({ message: "Logged out successfully" });
+}
+
+export async function getToken(req, res) {
+  // Protected by auth middleware; the cookie is present and valid
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized: No token" });
+    }
+    return res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
 }

@@ -10,4 +10,18 @@ const instance = axios.create({
 
 instance.defaults.withCredentials = true;
 
+// Attach Authorization header if token is available (fallback when cookies aren't shared across services)
+instance.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem('rivo_jwt');
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {
+    // ignore storage errors
+  }
+  return config;
+});
+
 export default instance;
