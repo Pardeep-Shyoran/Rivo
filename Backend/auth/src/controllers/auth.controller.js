@@ -44,7 +44,14 @@ export async function register(req, res) {
     role: user.role,
   });
 
-  res.cookie("token", token);
+  const cookieOptions = {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+  };
+
+  res.cookie("token", token, cookieOptions);
 
   res.status(201).json({
     message: `${user.fullName.firstName} ${user.fullName.lastName}, Account Created Successfully`,
@@ -86,7 +93,14 @@ export async function login(req, res) {
     { expiresIn: "2d" }
   );
 
-  res.cookie("token", token);
+  const cookieOptions = {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+  };
+
+  res.cookie("token", token, cookieOptions);
 
   res.status(200).json({
     message: `${user.fullName.firstName} ${user.fullName.lastName}, Logged In Successfully`,
@@ -118,7 +132,14 @@ export async function googleAuthCallback(req, res) {
       { expiresIn: "2d" }
     );
 
-    res.cookie("token", token);
+    const cookieOptions = {
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production',
+      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+    };
+
+    res.cookie("token", token, cookieOptions);
 
     return res.redirect(`${config.FRONTEND_URL}/artist/dashboard`);
   }
@@ -150,7 +171,14 @@ export async function googleAuthCallback(req, res) {
     { expiresIn: "2d" }
   );
 
-  res.cookie("token", token);
+  const cookieOptions = {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+  };
+
+  res.cookie("token", token, cookieOptions);
 
   res.redirect(`${config.FRONTEND_URL}`);
 }
@@ -179,6 +207,12 @@ export async function getCurrentUser(req, res) {
 }
 
 export async function logout(req, res) {
-  res.clearCookie("token");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+  };
+  
+  res.clearCookie("token", cookieOptions);
   res.status(200).json({ message: "Logged out successfully" });
 }
