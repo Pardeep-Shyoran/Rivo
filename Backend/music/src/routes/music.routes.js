@@ -9,21 +9,37 @@ const upload = multer({
 
 const router = express.Router();
 
-// Get all music tracks (public)
+// Get all music tracks (route for authenticated users)
 // GET /api/music/
-router.get("/", musicController.getAllMusics);
+router.get(
+  "/",
+  authMiddleware.authUserMiddleware,
+  musicController.getAllMusics
+);
 
-// Get music details by ID (public)
+// Get music details by ID (route for authenticated users)
 // GET /api/music/get-details/:id
-router.get("/get-details/:id", musicController.getMusicById);
+router.get(
+  "/get-details/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.getMusicById
+);
 
-// Get all playlists (public)
+// Get all playlists (route for authenticated users)
 // GET /api/music/playlist
-router.get("/playlist", musicController.getPlaylists);
+router.get(
+  "/playlist",
+  authMiddleware.authUserMiddleware,
+  musicController.getPlaylists
+);
 
-// Get a specific playlist by ID (public)
+// Get a specific playlist by ID (route for authenticated users)
 // GET /api/music/playlist/:id
-router.get("/playlist/:id", musicController.getPlaylistById);
+router.get(
+  "/playlist/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.getPlaylistById
+);
 
 // Upload music file and cover image (route for artists only)
 // POST /api/music/upload
