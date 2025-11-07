@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 passport.use(new GoogleStrategy({
   clientID: config.CLIENT_ID,
   clientSecret: config.CLIENT_SECRET,
-  callbackURL: '/api/auth/google/callback',
+  callbackURL: config.BACKEND_URL ? `${config.BACKEND_URL}/api/auth/google/callback` : '/api/auth/google/callback',
 }, (accessToken, refreshToken, profile, done) => {
   // Here, you would typically find or create a user in your database
   // For this example, we'll just return the profile
