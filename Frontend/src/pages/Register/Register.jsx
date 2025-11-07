@@ -6,10 +6,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "../../api/axiosAuthConfig";
 import useLoader from "../../contexts/useLoader";
+import { useUser } from "../../contexts/useUser";
 
 const Register = () => {
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
+  const { setUser } = useUser();
 
   const {
     register,
@@ -77,6 +79,7 @@ const Register = () => {
           // ignore storage errors
         }
       }
+      setUser(response.data.user); // Update user context immediately
       
       if (response.data.user.role === "artist") {
         navigate("/artist/dashboard");
