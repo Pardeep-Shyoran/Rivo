@@ -266,3 +266,184 @@ export async function getArtistPlaylists(req, res) {
     });
   }
 }
+
+export async function searchMusic(req, res) {
+  const { q, skip = 0, limit = 10 } = req.query;
+
+  try {
+    if (!q) {
+      return res.status(400).json({
+        message: "Search query is required",
+      });
+    }
+
+    // Search by title or artist name (case-insensitive)
+    const searchRegex = new RegExp(q, "i");
+    const musicsDocs = await musicModel
+      .find({
+        $or: [
+          { title: searchRegex },
+          { artist: searchRegex }
+        ]
+      })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit))
+      .lean();
+
+    const musics = [];
+
+    for (let music of musicsDocs) {
+      music.musicUrl = await getPresignedUrl(music.musicKey);
+      music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+      musics.push(music);
+    }
+
+    return res.status(200).json({
+      message: "Search results fetched successfully",
+      musics,
+      count: musics.length,
+    });
+  } catch (err) {
+    console.error("Error searching music:", err);
+    res.status(500).json({
+      message: "Error searching music",
+      error: err.message,
+    });
+  }
+}
+
+export async function searchPlaylists(req, res) {
+  const { q, skip = 0, limit = 10 } = req.query;
+
+  try {
+    if (!q) {
+      return res.status(400).json({
+        message: "Search query is required",
+      });
+    }
+
+    // Search by playlist title or artist name (case-insensitive)
+    const searchRegex = new RegExp(q, "i");
+    const playlistsDocs = await playlistModel
+      .find({
+        $or: [
+          { title: searchRegex },
+          { artist: searchRegex }
+        ]
+      })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit))
+      .lean();
+
+    const playlists = [];
+
+    for (let playlist of playlistsDocs) {
+      const musics = [];
+      
+      for (let musicId of playlist.musics) {
+        const music = await musicModel.findById(musicId).lean();
+        if (music) {
+          music.musicUrl = await getPresignedUrl(music.musicKey);
+          music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+          musics.push(music);
+        }
+      }
+      
+      playlist.musics = musics;
+      playlists.push(playlist);
+    }
+
+    return res.status(200).json({
+      message: "Playlist search results fetched successfully",
+      playlists,
+      count: playlists.length,
+    });
+  } catch (err) {
+    console.error("Error searching playlists:", err);
+    res.status(500).json({
+      message: "Error searching playlists",
+      error: err.message,
+    });
+  }
+}
+
+export async function searchAll(req, res) {
+  const { q, skip = 0, limit = 10 } = req.query;
+
+  try {
+    if (!q) {
+      return res.status(400).json({
+        message: "Search query is required",
+      });
+    }
+
+    const searchRegex = new RegExp(q, "i");
+
+    // Search music
+    const musicsDocs = await musicModel
+      .find({
+        $or: [
+          { title: searchRegex },
+          { artist: searchRegex }
+        ]
+      })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit))
+      .lean();
+
+    const musics = [];
+    for (let music of musicsDocs) {
+      music.musicUrl = await getPresignedUrl(music.musicKey);
+      music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+      musics.push(music);
+    }
+
+    // Search playlists
+    const playlistsDocs = await playlistModel
+      .find({
+        $or: [
+          { title: searchRegex },
+          { artist: searchRegex }
+        ]
+      })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit))
+      .lean();
+
+    const playlists = [];
+    for (let playlist of playlistsDocs) {
+      const musics = [];
+      
+      for (let musicId of playlist.musics) {
+        const music = await musicModel.findById(musicId).lean();
+        if (music) {
+          music.musicUrl = await getPresignedUrl(music.musicKey);
+          music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+          musics.push(music);
+        }
+      }
+      
+      playlist.musics = musics;
+      playlists.push(playlist);
+    }
+
+    return res.status(200).json({
+      message: "Search results fetched successfully",
+      results: {
+        musics,
+        playlists,
+      },
+      count: {
+        musics: musics.length,
+        playlists: playlists.length,
+        total: musics.length + playlists.length,
+      },
+    });
+  } catch (err) {
+    console.error("Error searching:", err);
+    res.status(500).json({
+      message: "Error searching",
+      error: err.message,
+    });
+  }
+}

@@ -7,6 +7,8 @@
   flex-direction: column;
   gap: 1rem;
   transition: all 0.3s ease;
+  width: 100%;
+  min-width: 0; /* Allow shrinking below content size */
 }
 
 .playlistCard:hover {
@@ -52,17 +54,24 @@
 }
 
 .playlistMusicsList {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
-  flex-wrap: wrap;
-  padding-bottom: 0.5rem;
-  scroll-behavior: smooth;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDown 0.3s ease;
 }
 
-.playlistMusicsList > div {
-  min-width: 200px;
-  max-width: 200px;
-  flex-shrink: 0;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .playlistMusicsList::-webkit-scrollbar {
@@ -86,8 +95,20 @@
 .playlistTitle {
   font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlistArtist {
+  font-size: 0.85rem;
+  color: var(--text-color4);
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playlistCount {
@@ -108,10 +129,33 @@
 }
 
 /* Responsive Design */
+@media (max-width: 768px) {
+  .playlistMusicsList {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
 @media (max-width: 480px) {
   .playlistIcon {
-    width: 60px;
-    height: 60px;
-    font-size: 2.5rem;
+    width: 50px;
+    height: 50px;
+    font-size: 2rem;
+  }
+
+  .playlistTitle {
+    font-size: 1rem;
+  }
+
+  .playlistCount {
+    font-size: 0.8rem;
+  }
+
+  .playlistMusicsList {
+    grid-template-columns: 1fr;
+  }
+
+  .playlistCard {
+    padding: 1rem;
   }
 }

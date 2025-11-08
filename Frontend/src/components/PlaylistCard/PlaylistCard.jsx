@@ -21,6 +21,9 @@ const PlaylistCard = ({ playlist }) => {
         <div className={styles.playlistIcon}>📋</div>
         <div className={styles.playlistInfo}>
           <h3 className={styles.playlistTitle}>{playlist.title}</h3>
+          {playlist.artist && (
+            <p className={styles.playlistArtist}>By {playlist.artist}</p>
+          )}
           <p className={styles.playlistCount}>
             {playlist.musics?.length || 0} tracks
           </p>

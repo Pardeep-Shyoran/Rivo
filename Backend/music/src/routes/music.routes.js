@@ -9,6 +9,30 @@ const upload = multer({
 
 const router = express.Router();
 
+// Search across all content (route for authenticated users)
+// GET /api/music/search?q=query
+router.get(
+  "/search",
+  authMiddleware.authUserMiddleware,
+  musicController.searchAll
+);
+
+// Search music tracks only (route for authenticated users)
+// GET /api/music/search/music?q=query
+router.get(
+  "/search/music",
+  authMiddleware.authUserMiddleware,
+  musicController.searchMusic
+);
+
+// Search playlists only (route for authenticated users)
+// GET /api/music/search/playlist?q=query
+router.get(
+  "/search/playlist",
+  authMiddleware.authUserMiddleware,
+  musicController.searchPlaylists
+);
+
 // Get all music tracks (route for authenticated users)
 // GET /api/music/
 router.get(

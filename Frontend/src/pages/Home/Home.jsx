@@ -6,6 +6,7 @@ import MusicTab from "../../components/MusicTab/MusicTab";
 import PlaylistTab from "../../components/PlaylistTab/PlaylistTab";
 import Tabs from "../../components/Tabs/Tabs";
 import Loader from "../../components/Loader/Loader";
+import SearchBar from "../../components/SearchBar/SearchBar";
 import axiosMusic from "../../api/axiosMusicConfig";
 import axiosAuth from "../../api/axiosAuthConfig";
 import { useMusicPlayer } from "../../contexts/useMusicPlayer";
@@ -72,9 +73,12 @@ const Home = () => {
       </Helmet>
       <div className={`${styles.home} ${currentMusic ? styles.withPlayer : ''}`}>
         <div className={styles.content}>
-          <h1 className={styles.heading}>
-            Welcome to Rivo{user ? `, ${user.fullName.firstName + " " + user.fullName.lastName}` : ""}!
-          </h1>
+          <div className={styles.headerSection}>
+            <h1 className={styles.heading}>
+              Welcome to Rivo{user ? `, ${user.fullName.firstName + " " + user.fullName.lastName}` : ""}!
+            </h1>
+            <SearchBar />
+          </div>
           {loading ? (
             <Loader message="Loading your content..." inline />
           ) : error ? (

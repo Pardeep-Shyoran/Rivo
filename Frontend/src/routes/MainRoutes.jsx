@@ -3,6 +3,7 @@ import Home from '../pages/Home/Home'
 import Features from '../pages/Features/Features'
 import Login from '../pages/Login/Login'
 import Register from '../pages/Register/Register'
+import Search from '../pages/Search/Search'
 import PageNotFound from '../pages/PageNotFound/PageNotFound'
 import ArtistDashboard from '../pages/Artist/ArtistDashboard/ArtistDashboard'
 import UploadMusic from '../pages/Artist/UploadMusic/UploadMusic'
@@ -45,6 +46,16 @@ const MainRoutes = () => {
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
+              } 
+            />
+
+            {/* Search route - accessible to all authenticated users */}
+            <Route 
+              path="/search" 
+              element={
+                <ProtectedRoute>
+                  <Search />
+                </ProtectedRoute>
               } 
             />
 
