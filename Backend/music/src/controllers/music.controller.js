@@ -322,13 +322,23 @@ export async function searchPlaylists(req, res) {
       });
     }
 
+    const musicsDocs = await musicModel
+      .find({
+        $or: [
+          { title: new RegExp(q, "i") },
+          { artist: new RegExp(q, "i") }
+        ]
+      })
+      .lean();
+
     // Search by playlist title or artist name (case-insensitive)
     const searchRegex = new RegExp(q, "i");
     const playlistsDocs = await playlistModel
       .find({
         $or: [
           { title: searchRegex },
-          { artist: searchRegex }
+          { artist: searchRegex },
+          { musics: { $in: musicsDocs.map(m => m._id) } }
         ]
       })
       .skip(parseInt(skip))
@@ -403,7 +413,8 @@ export async function searchAll(req, res) {
       .find({
         $or: [
           { title: searchRegex },
-          { artist: searchRegex }
+          { artist: searchRegex },
+          { musics: { $in: musicsDocs.map(m => m._id) } }
         ]
       })
       .skip(parseInt(skip))
