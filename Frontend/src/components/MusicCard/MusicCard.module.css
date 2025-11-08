@@ -86,8 +86,18 @@
 
 .musicArtist {
   font-size: 0.9rem;
-  color: var(--text-color5);
   margin-bottom: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.musicArtist:hover,
+.musicArtist:focus-visible {
+  text-decoration: underline;
 }
 
 .musicDate {

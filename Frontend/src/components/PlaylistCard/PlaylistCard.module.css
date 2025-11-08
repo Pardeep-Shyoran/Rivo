@@ -111,6 +111,20 @@
   white-space: nowrap;
 }
 
+.playlistArtistLink {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.playlistArtistLink:hover,
+.playlistArtistLink:focus-visible {
+  text-decoration: underline;
+}
+
 .playlistCount {
   font-size: 0.9rem;
   color: var(--text-color5);

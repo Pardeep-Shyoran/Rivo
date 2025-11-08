@@ -1,8 +1,10 @@
 import styles from './MusicCard.module.css';
 import { useMusicPlayer } from '../../contexts/useMusicPlayer';
+import { useNavigate } from 'react-router-dom';
 
 const MusicCard = ({ music }) => {
   const { playMusic, currentMusic, isPlaying, loading } = useMusicPlayer();
+  const navigate = useNavigate();
 
   const handlePlayClick = (e) => {
     e.stopPropagation();
@@ -28,7 +30,18 @@ const MusicCard = ({ music }) => {
       </div>
       <div className={styles.musicInfo}>
         <h3 className={styles.musicTitle}>{music.title}</h3>
-        <p className={styles.musicArtist}>{music.artist}</p>
+        <button
+          type="button"
+          className={styles.musicArtist}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (music.artist) {
+              navigate(`/artists/${encodeURIComponent(music.artist)}`);
+            }
+          }}
+        >
+          {music.artist}
+        </button>
         <p className={styles.musicDate}>
           {new Date(music.createdAt).toLocaleDateString()}
         </p>

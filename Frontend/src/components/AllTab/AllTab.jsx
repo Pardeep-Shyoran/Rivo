@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import MusicTab from '../MusicTab/MusicTab';
+import ArtistTab from '../ArtistTab/ArtistTab';
 import PlaylistTab from '../PlaylistTab/PlaylistTab';
 import styles from './AllTab.module.css';
 import { useMusicPlayer } from '../../contexts/useMusicPlayer';
@@ -10,7 +11,10 @@ const AllTab = ({
   playlists, 
   exploreLimit, 
   onNavigateToSongs, 
-  onNavigateToPlaylists 
+  onNavigateToPlaylists,
+  onNavigateToArtists,
+  onFilterByArtist,
+  onNavigateToArtistDetail,
 }) => {
   const { playHistory } = useMusicPlayer();
 
@@ -26,6 +30,28 @@ const AllTab = ({
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Explore Songs</h2>
         <MusicTab musics={exploreSongs.slice(0, exploreLimit)} />
+      </section>
+
+      {/* Top Artists Preview */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Top Artists</h2>
+        <ArtistTab 
+          musics={musics}
+          previewLimit={8}
+          disableAutoPlay
+          onSelectArtist={(artist) => {
+            if (onNavigateToArtistDetail) {
+              onNavigateToArtistDetail(artist);
+            } else if (onFilterByArtist) {
+              onFilterByArtist(artist.name);
+            }
+          }}
+        />
+        <div className={styles.viewMoreContainer}>
+          <button onClick={onNavigateToArtists} className={styles.viewMoreButton}>
+            View More
+          </button>
+        </div>
       </section>
 
       <section className={styles.section}>
@@ -68,6 +94,9 @@ AllTab.propTypes = {
   exploreLimit: PropTypes.number.isRequired,
   onNavigateToSongs: PropTypes.func.isRequired,
   onNavigateToPlaylists: PropTypes.func.isRequired,
+  onNavigateToArtists: PropTypes.func,
+  onFilterByArtist: PropTypes.func,
+  onNavigateToArtistDetail: PropTypes.func,
 };
 
 export default AllTab;

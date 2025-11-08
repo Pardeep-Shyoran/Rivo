@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axiosMusicConfig from '../../api/axiosMusicConfig';
 import PageWrapper from '../../components/PageWrapper/PageWrapper';
 import MusicCard from '../../components/MusicCard/MusicCard';
+import ArtistTab from '../../components/ArtistTab/ArtistTab';
 import PlaylistCard from '../../components/PlaylistCard/PlaylistCard';
 import EmptyState from '../../components/EmptyState/EmptyState';
 import Loader from '../../components/Loader/Loader';
@@ -12,11 +13,14 @@ import styles from './Search.module.css';
 const Search = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q');
+  const navigate = useNavigate();
   
   const [results, setResults] = useState({ musics: [], playlists: [] });
+  const [artists, setArtists] = useState([]); // derived unique artists
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'music', 'playlist'
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'music', 'playlist', 'artist'
+  const [artistFilter, setArtistFilter] = useState(null);
 
   const performSearch = async () => {
     if (!query) return;
@@ -25,11 +29,13 @@ const Search = () => {
     setError(null);
 
     try {
-      const endpoint = activeTab === 'all' 
-        ? '/api/music/search' 
-        : activeTab === 'music' 
-        ? '/api/music/search/music' 
-        : '/api/music/search/playlist';
+      const endpoint = activeTab === 'all'
+        ? '/api/music/search'
+        : activeTab === 'music'
+        ? '/api/music/search/music'
+        : activeTab === 'playlist'
+        ? '/api/music/search/playlist'
+        : '/api/music/search/music'; // artist tab leverages music search then aggregates
 
     //   console.log('🔍 Search Request:', {
     //     query,
@@ -49,7 +55,7 @@ const Search = () => {
           musics: response.data.results?.musics || [],
           playlists: response.data.results?.playlists || []
         });
-      } else if (activeTab === 'music') {
+      } else if (activeTab === 'music' || activeTab === 'artist') {
         setResults({
           musics: response.data.musics || [],
           playlists: []
@@ -60,6 +66,22 @@ const Search = () => {
           playlists: response.data.playlists || []
         });
       }
+
+      // Derive unique artists whenever we have musics (for all, music, artist tabs)
+      const sourceMusics = activeTab === 'all' ? (response.data.results?.musics || []) : (activeTab === 'playlist' ? [] : (response.data.musics || []));
+      const map = new Map();
+      for (const m of sourceMusics) {
+        const key = (m.artist || 'Unknown').trim();
+        const obj = map.get(key) || { name: key, count: 0, latestSong: null, latestDate: 0 };
+        obj.count += 1;
+        const created = new Date(m.createdAt || 0).getTime();
+        if (!obj.latestSong || created > obj.latestDate) {
+          obj.latestSong = m;
+          obj.latestDate = created;
+        }
+        map.set(key, obj);
+      }
+      setArtists(Array.from(map.values()).sort((a,b) => b.count - a.count));
     } catch (err) {
       console.error('Search error:', err);
       console.error('Error response:', err.response);
@@ -96,6 +118,7 @@ const Search = () => {
     if (activeTab === 'all') return totalResults === 0;
     if (activeTab === 'music') return results.musics.length === 0;
     if (activeTab === 'playlist') return results.playlists.length === 0;
+    if (activeTab === 'artist') return artists.length === 0;
     return false;
   };
 
@@ -136,6 +159,12 @@ const Search = () => {
           >
             Playlists
           </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'artist' ? styles.active : ''}`}
+            onClick={() => setActiveTab('artist')}
+          >
+            Artists
+          </button>
         </div>
 
         {loading ? (
@@ -162,17 +191,45 @@ const Search = () => {
           />
         ) : (
           <div className={styles.resultsContainer}>
+            {/* Artist Results */}
+            {activeTab === 'artist' && artists.length > 0 && (
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Artists ({artists.length})</h2>
+                <ArtistTab 
+                  musics={results.musics}
+                  disableAutoPlay
+                  enableCounts
+                  previewLimit={undefined}
+                  onSelectArtist={(artist) => navigate(`/artists/${encodeURIComponent(artist.name)}`)}
+                />
+              </section>
+            )}
+
             {/* Music Results */}
             {(activeTab === 'all' || activeTab === 'music') && results.musics.length > 0 && (
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>
-                  Songs {activeTab === 'all' && `(${results.musics.length})`}
+                  {artistFilter ? `Songs by ${artistFilter}` : 'Songs'} {activeTab === 'all' && !artistFilter && `(${results.musics.length})`}
                 </h2>
                 <div className={styles.grid}>
-                  {results.musics.map((music) => (
+                  {(artistFilter ? results.musics.filter(m => m.artist?.trim().toLowerCase() === artistFilter.toLowerCase()) : results.musics).map((music) => (
                     <MusicCard key={music._id} music={music} />
                   ))}
                 </div>
+                {artistFilter && (
+                  <div style={{marginTop:'0.75rem'}}>
+                    <button
+                      onClick={() => setArtistFilter(null)}
+                      style={{
+                        background:'none',
+                        border:'none',
+                        color:'var(--primary-color)',
+                        cursor:'pointer',
+                        fontWeight:600
+                      }}
+                    >Clear Artist Filter</button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -205,6 +262,12 @@ const Search = () => {
                 <div className={styles.emptySection}>
                   <p className={styles.emptySectionText}>No playlists found for "{query}"</p>
                 </div>
+              </section>
+            )}
+            {/* Empty state for Artists tab when no artists */}
+            {activeTab === 'artist' && artists.length === 0 && (
+              <section className={styles.section}>
+                <EmptyState icon="🎤" title={`No artists matched "${query}"`} description="Try a different name or check Songs tab." />
               </section>
             )}
           </div>

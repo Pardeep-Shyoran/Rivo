@@ -1,0 +1,202 @@
+.artistsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Card wrapper now handles separate media + info sections */
+.artistCard {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 0.9rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--border-color, #2d2d2d);
+  background: linear-gradient(145deg, #141414 0%, #191919 60%, #1d1d1d 100%);
+  border-radius: 16px;
+  transition: background .25s, border-color .25s, transform .18s, box-shadow .25s;
+}
+
+.artistCard:hover {
+  background: linear-gradient(145deg, #181818 0%, #202020 55%, #222222 100%);
+  border-color: var(--primary-color, #6a4bff);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px -6px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.35);
+}
+
+/* Media (cover/avatar + play overlay) */
+.media {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.media:focus-visible { box-shadow: 0 0 0 3px rgba(106,75,255,.5); }
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: inherit;
+  filter: brightness(.9) contrast(1.05);
+  transition: transform .4s ease, filter .3s ease;
+}
+
+.media:hover .cover { transform: scale(1.07); filter: brightness(1) contrast(1.08); }
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-color, #6a4bff), #9d7bff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  color: #fff;
+  flex-shrink: 0;
+  transition: transform .4s;
+}
+
+.media:hover .avatar { transform: scale(1.08); }
+
+.playBadge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+  letter-spacing: .5px;
+}
+
+.equalizer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  pointer-events: none;
+}
+
+.equalizer span {
+  width: 4px;
+  height: 14px;
+  background: rgba(255,255,255,.85);
+  border-radius: 2px;
+  animation: bounce 1s ease-in-out infinite;
+  animation-delay: calc(var(--i) * .12s);
+}
+
+.equalizer span:nth-child(1) { --i: 0; }
+.equalizer span:nth-child(2) { --i: 1; }
+.equalizer span:nth-child(3) { --i: 2; }
+
+@keyframes bounce {
+  0%,100% { transform: scaleY(.4); opacity:.65; }
+  50% { transform: scaleY(1); opacity:1; }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.topRow { display: flex; align-items: center; gap: .5rem; }
+
+.name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: color .25s;
+}
+
+.name:hover { color: var(--primary-color, #6a4bff); }
+
+.liveBadge {
+  background: linear-gradient(90deg, #ff3d3d, #ff7a7a);
+  color: #fff;
+  font-size: .55rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  letter-spacing: .5px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: .7rem;
+  color: var(--text-secondary, #9b9b9b);
+}
+
+.dot { opacity: .5; }
+.latest { font-weight: 500; }
+.detailsBtn {
+  border: none;
+  background: none;
+  color: var(--primary-color, #6a4bff);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.count { font-size: .7rem; font-weight: 500; color: var(--text-secondary, #9b9b9b); }
+
+@media (max-width: 768px) {
+  .artistsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  .artistCard { padding: 0.75rem 0.85rem; }
+  .media { width: 56px; height: 56px; }
+  .avatar { width: 56px; height: 56px; font-size: 1.05rem; }
+  .name { font-size: 0.9rem; }
+  .playBadge { font-size: .7rem; padding: 3px 5px; }
+}
+
+@media (max-width: 520px) {
+  .artistsGrid { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); }
+  .artistCard { gap: .75rem; }
+  .media { width: 52px; height: 52px; }
+  .avatar { width: 52px; height: 52px; font-size: .95rem; }
+  .liveBadge { display: none; }
+}

@@ -9,6 +9,7 @@ import ArtistDashboard from '../pages/Artist/ArtistDashboard/ArtistDashboard'
 import UploadMusic from '../pages/Artist/UploadMusic/UploadMusic'
 import CreatePlaylist from '../pages/Artist/CreatePlaylist/CreatePlaylist'
 import PlaylistDetail from '../pages/Playlist/PlaylistDetail'
+import ArtistDetail from '../pages/Artist/ArtistDetail/ArtistDetail'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import { useUser } from '../contexts/useUser'
@@ -92,6 +93,14 @@ const MainRoutes = () => {
               element={
                 <ProtectedRoute>
                   <PlaylistDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/artists/:artistName" 
+              element={
+                <ProtectedRoute>
+                  <ArtistDetail />
                 </ProtectedRoute>
               }
             />
