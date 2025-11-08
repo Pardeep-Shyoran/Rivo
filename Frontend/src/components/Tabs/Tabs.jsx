@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Tabs.module.css';
 
-const Tabs = ({ tabs, defaultTab, onTabChange, className }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+const Tabs = ({ tabs, defaultTab, activeTab: controlledActiveTab, onTabChange, className }) => {
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id);
+
+  // Use controlled activeTab if provided, otherwise use internal state
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab;
+
+  // Sync internal state when controlled activeTab changes
+  useEffect(() => {
+    if (controlledActiveTab !== undefined) {
+      setInternalActiveTab(controlledActiveTab);
+    }
+  }, [controlledActiveTab]);
 
   const handleTabClick = (tabId) => {
-    setActiveTab(tabId);
+    if (controlledActiveTab === undefined) {
+      setInternalActiveTab(tabId);
+    }
     if (onTabChange) {
       onTabChange(tabId);
     }
@@ -46,6 +58,7 @@ Tabs.propTypes = {
     })
   ).isRequired,
   defaultTab: PropTypes.string,
+  activeTab: PropTypes.string,
   onTabChange: PropTypes.func,
   className: PropTypes.string,
 };

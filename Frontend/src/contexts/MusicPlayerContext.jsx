@@ -11,8 +11,10 @@ export const MusicPlayerProvider = ({ children }) => {
   const [volume, setVolume] = useState(1);
   const [loading, setLoading] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
+  const [playHistory, setPlayHistory] = useState([]);
   const audioRef = useRef(null);
   const RESTORE_KEY = 'rivo_player_state';
+  const HISTORY_KEY = 'rivo_play_history';
   const location = useLocation();
   const lastNavTimeRef = useRef(0);
   const userPausedRef = useRef(false);
@@ -22,6 +24,18 @@ export const MusicPlayerProvider = ({ children }) => {
   const lastUpdateTimeRef = useRef(0);
 
   // console.log('MusicPlayerProvider state:', { currentMusic: currentMusic?._id, isPlaying });
+
+  // Load play history from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem(HISTORY_KEY);
+      if (savedHistory) {
+        setPlayHistory(JSON.parse(savedHistory));
+      }
+    } catch (err) {
+      console.warn('Failed to load play history:', err?.message);
+    }
+  }, []);
 
   // Initialize audio element and restore previous session if any
   useEffect(() => {
@@ -142,6 +156,25 @@ export const MusicPlayerProvider = ({ children }) => {
   useEffect(() => { currentIdRef.current = currentMusic?._id || null; }, [currentMusic]);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
+  // Function to add music to play history
+  const addToHistory = (music) => {
+    setPlayHistory((prevHistory) => {
+      // Remove if already exists to avoid duplicates
+      const filtered = prevHistory.filter((item) => item._id !== music._id);
+      // Add to the beginning, keep max 20 items
+      const newHistory = [music, ...filtered].slice(0, 20);
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+      } catch (err) {
+        console.warn('Failed to save play history:', err?.message);
+      }
+      
+      return newHistory;
+    });
+  };
+
   // Play music
   const playMusic = async (music) => {
     const audio = audioRef.current;
@@ -166,6 +199,9 @@ export const MusicPlayerProvider = ({ children }) => {
         setCurrentMusic(music);
         audio.src = music.musicUrl;
         audio.volume = volume;
+        
+        // Add to play history
+        addToHistory(music);
         
         // Wait for audio to be ready and then play
         const playPromise = audio.play();
@@ -290,6 +326,7 @@ export const MusicPlayerProvider = ({ children }) => {
     duration,
     volume,
     loading,
+    playHistory,
     playMusic,
     pauseMusic,
     resumeMusic,

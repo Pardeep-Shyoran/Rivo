@@ -159,3 +159,28 @@
     padding: 1rem;
   }
 }
+
+.viewAllBtn {
+  grid-column: 1 / -1;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(79, 70, 229, 0.3);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.viewAllBtn:hover {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(59, 130, 246, 0.2));
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.viewAllBtn:active {
+  transform: translateY(0);
+}

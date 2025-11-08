@@ -1,0 +1,141 @@
+.playlistDetailContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.playlistHeader {
+  margin-bottom: 2rem;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(79, 70, 229, 0.3);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.backBtn:hover {
+  background: rgba(79, 70, 229, 0.2);
+  border-color: var(--primary-color);
+  transform: translateX(-4px);
+}
+
+.backBtn svg {
+  transition: transform 0.3s ease;
+}
+
+.backBtn:hover svg {
+  transform: translateX(-4px);
+}
+
+.playlistInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}
+
+.playlistIcon {
+  font-size: 4rem;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 70, 229, 0.15);
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+
+.playlistTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.playlistArtist {
+  font-size: 1.1rem;
+  color: var(--text-color4);
+  margin-bottom: 0.5rem;
+}
+
+.playlistCount {
+  font-size: 1rem;
+  color: var(--text-color5);
+  font-weight: 500;
+}
+
+.musicsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .playlistDetailContainer {
+    padding: 1rem;
+  }
+
+  .playlistInfo {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .playlistIcon {
+    width: 80px;
+    height: 80px;
+    font-size: 3rem;
+  }
+
+  .playlistTitle {
+    font-size: 1.5rem;
+  }
+
+  .musicsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .backBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .playlistIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2.5rem;
+  }
+
+  .playlistTitle {
+    font-size: 1.25rem;
+  }
+
+  .playlistArtist {
+    font-size: 1rem;
+  }
+
+  .musicsGrid {
+    grid-template-columns: 1fr;
+  }
+}

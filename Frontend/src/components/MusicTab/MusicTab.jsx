@@ -6,13 +6,16 @@ import styles from './MusicTab.module.css';
 
 // musics: array of music objects
 // isLoading: optional prop to show loading state from parent
-const MusicTab = ({ musics, isLoading = false }) => {
+// reverse: optional prop to reverse the order (default: true for backward compatibility)
+const MusicTab = ({ musics, isLoading = false, reverse = true }) => {
   const navigate = useNavigate();
 
   // Show loader if explicitly loading from parent
   if (isLoading) {
     return <Loader message="Loading music..." inline />;
   }
+
+  const displayMusics = reverse ? [...musics].reverse() : musics;
 
   return (
     <div className={styles.musicsGrid}>
@@ -25,7 +28,7 @@ const MusicTab = ({ musics, isLoading = false }) => {
           onButtonClick={() => navigate('/artist/upload')}
         />
       ) : (
-        [...musics].reverse().map((music) => <MusicCard key={music._id} music={music} />)
+        displayMusics.map((music) => <MusicCard key={music._id} music={music} />)
       )}
     </div>
   );

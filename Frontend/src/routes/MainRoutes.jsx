@@ -8,6 +8,7 @@ import PageNotFound from '../pages/PageNotFound/PageNotFound'
 import ArtistDashboard from '../pages/Artist/ArtistDashboard/ArtistDashboard'
 import UploadMusic from '../pages/Artist/UploadMusic/UploadMusic'
 import CreatePlaylist from '../pages/Artist/CreatePlaylist/CreatePlaylist'
+import PlaylistDetail from '../pages/Playlist/PlaylistDetail'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import { useUser } from '../contexts/useUser'
@@ -85,6 +86,15 @@ const MainRoutes = () => {
               } 
             />
 
+            
+            <Route 
+              path="/playlist/:playlistId" 
+              element={
+                <ProtectedRoute>
+                  <PlaylistDetail />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<PageNotFound />} />
         </Routes>
     </>

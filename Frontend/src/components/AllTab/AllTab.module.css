@@ -1,0 +1,37 @@
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color2);
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.5px;
+}
+
+.viewMoreContainer {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.viewMoreButton {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.viewMoreButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.viewMoreButton:active {
+  transform: translateY(0);
+}

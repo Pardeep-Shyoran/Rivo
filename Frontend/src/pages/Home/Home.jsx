@@ -7,6 +7,7 @@ import PlaylistTab from "../../components/PlaylistTab/PlaylistTab";
 import Tabs from "../../components/Tabs/Tabs";
 import Loader from "../../components/Loader/Loader";
 import SearchBar from "../../components/SearchBar/SearchBar";
+import AllTab from "../../components/AllTab/AllTab";
 import axiosMusic from "../../api/axiosMusicConfig";
 import axiosAuth from "../../api/axiosAuthConfig";
 import { useMusicPlayer } from "../../contexts/useMusicPlayer";
@@ -15,13 +16,14 @@ const Home = () => {
   const [user, setUser] = useState(null);
   const [musics, setMusics] = useState([]);
   const [playlists, setPlaylists] = useState([]);
+  const [exploreSongs, setExploreSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const SONGS_LIMIT = 10;
-  // Removed unused activeTab state, only setActiveTab is needed for onTabChange
-  const [, setActiveTab] = useState();
+  const EXPLORE_LIMIT = 6;
+  const [activeTab, setActiveTab] = useState("all");
 
   const { currentMusic } = useMusicPlayer();
 
@@ -30,15 +32,17 @@ const Home = () => {
       setLoading(true);
       setError(null);
       try {
-        const [userRes, musicRes, playlistRes] = await Promise.all([
+        const [userRes, musicRes, playlistRes, exploreRes] = await Promise.all([
           axiosAuth.get("/api/auth/me"),
           axiosMusic.get(`/api/music/?skip=0&limit=${SONGS_LIMIT}`),
           axiosMusic.get("/api/music/playlist"), // Already returns populated music objects
+          axiosMusic.get(`/api/music/?skip=0&limit=${EXPLORE_LIMIT}`), // Get songs for explore section
         ]);
         setUser(userRes.data.user || null);
         setMusics(musicRes.data.musics || []);
         setHasMore((musicRes.data.musics || []).length === SONGS_LIMIT);
         setPlaylists(playlistRes.data.playlists || []);
+        setExploreSongs(exploreRes.data.musics || []);
       } catch {
         setError("Failed to load data");
       } finally {
@@ -85,7 +89,22 @@ const Home = () => {
             <div className={styles.error}>{error}</div>
           ) : (
             <Tabs
+              activeTab={activeTab}
               tabs={[
+                {
+                  id: "all",
+                  label: "All",
+                  content: (
+                    <AllTab
+                      exploreSongs={exploreSongs}
+                      musics={musics}
+                      playlists={playlists}
+                      exploreLimit={EXPLORE_LIMIT}
+                      onNavigateToSongs={() => setActiveTab("songs")}
+                      onNavigateToPlaylists={() => setActiveTab("playlists")}
+                    />
+                  ),
+                },
                 {
                   id: "songs",
                   label: "Songs",
@@ -128,7 +147,7 @@ const Home = () => {
                   ),
                 },
               ]}
-              defaultTab="songs"
+              defaultTab="all"
               onTabChange={setActiveTab}
             />
           )}
