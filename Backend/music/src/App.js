@@ -34,7 +34,6 @@ const corsOptions = {
 };
 
 App.use(cors(corsOptions));
-App.options("*", cors(corsOptions));
 
 // Startup debug (safe): show configured FRONTEND_URL
 console.log("[CORS] music allowed origin:", config.FRONTEND_URL || "<none>");

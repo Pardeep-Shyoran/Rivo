@@ -37,7 +37,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 console.log('[CORS] auth allowed origin:', config.FRONTEND_URL || '<none>');
 
