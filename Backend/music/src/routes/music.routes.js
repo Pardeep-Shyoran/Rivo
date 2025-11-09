@@ -85,11 +85,11 @@ router.get(
   musicController.getArtistMusics
 );
 
-// Create a new playlist (route for artists only)
+// Create a new playlist (route for any authenticated user)
 // POST /api/music/playlist
 router.post(
   "/playlist",
-  authMiddleware.authArtistMiddleware,
+  authMiddleware.authUserMiddleware,
   musicController.createPlaylist
 );
 
@@ -99,6 +99,38 @@ router.get(
   "/artist/playlist",
   authMiddleware.authArtistMiddleware,
   musicController.getArtistPlaylists
+);
+
+// Get all playlists created by the authenticated user (listener or artist)
+// GET /api/music/user/playlist
+router.get(
+  "/user/playlist",
+  authMiddleware.authUserMiddleware,
+  musicController.getUserPlaylists
+);
+
+// Log play (authenticated users)
+// POST /api/music/play/:id
+router.post(
+  "/play/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.logPlay
+);
+
+// Get streak (authenticated users)
+// GET /api/music/streak
+router.get(
+  "/streak",
+  authMiddleware.authUserMiddleware,
+  musicController.getStreak
+);
+
+// Get play history (authenticated users)
+// GET /api/music/history?limit=50&skip=0
+router.get(
+  "/history",
+  authMiddleware.authUserMiddleware,
+  musicController.getPlayHistory
 );
 
 export default router;

@@ -1,6 +1,8 @@
 import { uploadFile, getPresignedUrl } from "../services/storage.service.js";
 import musicModel from "../models/music.model.js";
 import playlistModel from "../models/playlist.model.js";
+import playActivityModel from "../models/playActivity.model.js";
+import playHistoryModel from "../models/playHistory.model.js";
 
 
 export async function getAllMusics(req, res) {
@@ -133,16 +135,24 @@ export async function getArtistMusics(req, res) {
 }
 
 export async function createPlaylist(req, res) {
-  const { title, musics } = req.body;
+  const { title, musics = [], description = "", isPublic = true } = req.body;
 
   try {
-    const playlist = await playlistModel.create({
-      artist: req.user.fullName.firstName + " " + req.user.fullName.lastName,
-      artistId: req.user.id,
+    const payload = {
       title,
       userId: req.user.id,
       musics,
-    });
+      description,
+      isPublic,
+    };
+
+    // If the creator is an artist, also populate artist fields for backward compatibility
+    if (req.user.role === "artist") {
+      payload.artist = req.user.fullName.firstName + " " + req.user.fullName.lastName;
+      payload.artistId = req.user.id;
+    }
+
+    const playlist = await playlistModel.create(payload);
 
     return res.status(201).json({
       message: "Playlist created successfully",
@@ -262,6 +272,41 @@ export async function getArtistPlaylists(req, res) {
     console.error("Error fetching artist playlists:", err);
     res.status(500).json({
       message: "Error fetching artist playlists",
+      error: err.message,
+    });
+  }
+}
+
+export async function getUserPlaylists(req, res) {
+  try {
+    const playlistsDocs = await playlistModel.find({ userId: req.user.id }).lean();
+
+    const playlists = [];
+
+    for (let playlist of playlistsDocs) {
+      const musics = [];
+
+      for (let musicId of playlist.musics) {
+        const music = await musicModel.findById(musicId).lean();
+        if (music) {
+          music.musicUrl = await getPresignedUrl(music.musicKey);
+          music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+          musics.push(music);
+        }
+      }
+
+      playlist.musics = musics;
+      playlists.push(playlist);
+    }
+
+    return res.status(200).json({
+      message: "User playlists fetched successfully",
+      playlists,
+    });
+  } catch (err) {
+    console.error("Error fetching user playlists:", err);
+    res.status(500).json({
+      message: "Error fetching user playlists",
       error: err.message,
     });
   }
@@ -456,5 +501,141 @@ export async function searchAll(req, res) {
       message: "Error searching",
       error: err.message,
     });
+  }
+}
+
+// ---------------- PLAY ACTIVITY & STREAK -----------------
+// Log a play of a music track for the authenticated user.
+// POST /api/music/play/:id
+export async function logPlay(req, res) {
+  try {
+    const { id } = req.params;
+    const { duration, deviceId } = req.body; // Optional fields
+    
+    // Validate music existence (optional short-circuit for bad IDs)
+    const music = await musicModel.findById(id).lean();
+    if (!music) {
+      return res.status(404).json({ message: 'Music not found' });
+    }
+
+    const userId = req.user.id;
+    const now = new Date();
+    const day = now.toISOString().slice(0,10); // YYYY-MM-DD
+
+    // Update daily activity for streak calculation
+    const activity = await playActivityModel.findOneAndUpdate(
+      { userId, day },
+      { $inc: { plays: 1 }, $set: { lastPlayAt: now } },
+      { new: true, upsert: true }
+    ).lean();
+
+    // Save individual play event to history
+    const historyEntry = await playHistoryModel.create({
+      userId,
+      musicId: id,
+      playedAt: now,
+      duration: duration || 0,
+      deviceId: deviceId || null,
+    });
+
+    return res.status(200).json({
+      message: 'Play logged',
+      activity: {
+        day: activity.day,
+        plays: activity.plays,
+        lastPlayAt: activity.lastPlayAt,
+      },
+      historyId: historyEntry._id,
+    });
+  } catch (err) {
+    console.error('Error logging play:', err);
+    return res.status(500).json({ message: 'Error logging play', error: err.message });
+  }
+}
+
+// Get current streak for authenticated user
+// GET /api/music/streak
+export async function getStreak(req, res) {
+  try {
+    const userId = req.user.id;
+    // Fetch last N days of activity (limit to avoid large scans)
+    const daysToCheck = 30;
+    const today = new Date();
+    const startDate = new Date(today.getTime() - (daysToCheck - 1) * 86400000);
+    const startDayStr = startDate.toISOString().slice(0,10);
+
+    const activities = await playActivityModel.find({
+      userId,
+      day: { $gte: startDayStr },
+    }).lean();
+
+    const activitySet = new Set(activities.map(a => a.day));
+
+    let streak = 0;
+    for (let i = 0; i < daysToCheck; i++) {
+      const d = new Date(today.getTime() - i * 86400000).toISOString().slice(0,10);
+      if (activitySet.has(d)) streak++;
+      else break;
+    }
+
+    return res.status(200).json({
+      message: 'Streak fetched',
+      streak,
+      daysConsidered: daysToCheck,
+      hasActivityToday: activitySet.has(today.toISOString().slice(0,10)),
+    });
+  } catch (err) {
+    console.error('Error fetching streak:', err);
+    return res.status(500).json({ message: 'Error fetching streak', error: err.message });
+  }
+}
+
+// Get play history for authenticated user
+// GET /api/music/history?limit=50&skip=0
+export async function getPlayHistory(req, res) {
+  try {
+    const userId = req.user.id;
+    const { limit = 50, skip = 0 } = req.query;
+    const limitNum = Math.min(parseInt(limit), 200); // Cap at 200
+    const skipNum = parseInt(skip) || 0;
+
+    // Fetch history entries sorted by most recent first
+    const historyEntries = await playHistoryModel
+      .find({ userId })
+      .sort({ playedAt: -1 })
+      .skip(skipNum)
+      .limit(limitNum)
+      .lean();
+
+    // Populate music details with presigned URLs
+    const history = [];
+    for (let entry of historyEntries) {
+      const music = await musicModel.findById(entry.musicId).lean();
+      if (music) {
+        music.musicUrl = await getPresignedUrl(music.musicKey);
+        music.coverImageUrl = await getPresignedUrl(music.coverImageKey);
+        history.push({
+          ...entry,
+          music,
+        });
+      }
+    }
+
+    // Get total count for pagination
+    const totalCount = await playHistoryModel.countDocuments({ userId });
+
+    return res.status(200).json({
+      message: 'Play history fetched',
+      history,
+      pagination: {
+        total: totalCount,
+        limit: limitNum,
+        skip: skipNum,
+        hasMore: skipNum + history.length < totalCount,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching play history:', err);
+    return res.status(500).json({ message: 'Error fetching play history', error: err.message });
   }
 }
