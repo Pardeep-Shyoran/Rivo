@@ -11,7 +11,7 @@ import { useUser } from "../../contexts/useUser";
 const Register = () => {
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
-  const { setUser } = useUser();
+  const { setUser, setToken } = useUser();
 
   const {
     register,
@@ -70,6 +70,12 @@ const Register = () => {
     try {
       const response = await axios.post("/api/auth/register", data);
       toast.success(response.data.message || "Registration successful!");
+      
+      // Store token in memory (UserContext) for cross-domain music API requests
+      if (response?.data?.token) {
+        setToken(response.data.token);
+      }
+     
       reset();
       setUser(response.data.user); // Update user context immediately
       

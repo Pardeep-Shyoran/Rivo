@@ -50,6 +50,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navigate = useNavigate();
+  const { user, loading, setUser, setToken } = useUser();
 
   // Reflect collapsed state to the document for layout adjustments
   useEffect(() => {
@@ -105,20 +106,24 @@ const Header = () => {
     .filter(Boolean)
     .join(" ");
 
-  const { user, loading } = useUser();
   const [avatarError, setAvatarError] = useState(false);
 
   const handleLogout = async () => {
     try {
       await axios.post("/api/auth/logout");
       try { localStorage.removeItem('rivo_jwt'); } catch { /* ignore */ }
+      // Clear in-memory token from UserContext
+      setUser(null);
+      setToken(null);
       // Reload the page to clear user context and redirect
       navigate(0);
     } catch (error) {
       console.error("Logout failed:", error);
       // Ensure legacy token is removed even if server call fails
       try { localStorage.removeItem('rivo_jwt'); } catch { /* ignore */ }
-      // Still reload on error to clear local state
+      // Still clear context and reload on error
+      setUser(null);
+      setToken(null);
       navigate(0);
     }
   };

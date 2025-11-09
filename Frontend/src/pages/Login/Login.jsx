@@ -11,7 +11,7 @@ import { useUser } from "../../contexts/useUser";
 const Login = () => {
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
-  const { setUser } = useUser();
+  const { setUser, setToken } = useUser();
 
   const {
     register,
@@ -65,6 +65,12 @@ const Login = () => {
     try {
       const response = await axios.post("/api/auth/login", data);
       toast.success(response.data.message || "Login successful!");
+      
+      // Store token in memory (UserContext) for cross-domain music API requests
+      if (response?.data?.token) {
+        setToken(response.data.token);
+      }
+     
       reset();
       setUser(response.data.user); // Update user context immediately
       if (response.data.user.role === "artist") {
