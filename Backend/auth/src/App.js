@@ -12,10 +12,34 @@ const app = express();
 
 // Middleware setup
 app.use(morgan('dev'));
-app.use(cors({
-  origin: config.FRONTEND_URL,
+
+// Robust CORS similar to music service
+const whitelist = [config.FRONTEND_URL].filter(Boolean);
+const allowedPatterns = [
+  /^https?:\/\/localhost:\d+$/,
+  /^https?:\/\/127\.0\.0\.1:\d+$/,
+  /\.vercel\.app$/,
+];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true); // server-to-server
+    const isWhitelisted =
+      whitelist.includes(origin) || allowedPatterns.some((re) => re.test(origin));
+    if (isWhitelisted) return callback(null, true);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
   credentials: true,
-}));
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Set-Cookie"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+console.log('[CORS] auth allowed origin:', config.FRONTEND_URL || '<none>');
 
 app.use(express.json());
 
