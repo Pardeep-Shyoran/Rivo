@@ -11,7 +11,7 @@ import { useUser } from "../../contexts/useUser";
 const Login = () => {
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
-  const { setUser, setToken } = useUser();
+  const { setUser } = useUser();
 
   const {
     register,
@@ -66,10 +66,7 @@ const Login = () => {
       const response = await axios.post("/api/auth/login", data);
       toast.success(response.data.message || "Login successful!");
       
-      // Store token in memory (UserContext) for cross-domain music API requests
-      if (response?.data?.token) {
-        setToken(response.data.token);
-      }
+      // Cookie httpOnly carries authentication; no client token storage needed.
      
       reset();
       setUser(response.data.user); // Update user context immediately

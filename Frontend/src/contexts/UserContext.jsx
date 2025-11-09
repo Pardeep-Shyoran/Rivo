@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosAuthConfig.jsx';
-import { setMusicAuthToken } from '../api/axiosMusicConfig.jsx';
 
 import { UserContext } from './UserContextInstance.js';
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setTokenState] = useState(null); // In-memory token storage (no localStorage)
-  
-  // Wrapper to update both state and axios instance
-  const setToken = (newToken) => {
-    setTokenState(newToken);
-    setMusicAuthToken(newToken); // Update axios interceptor
-  };
+  // Token state removed: cookie-only auth, we no longer mirror JWT client-side.
 
   useEffect(() => {
     // Clean up legacy token from localStorage
@@ -23,18 +16,9 @@ export const UserProvider = ({ children }) => {
         const response = await axios.get('/api/auth/me');
         setUser(response.data.user);
         
-        // Bootstrap token from cookie via /api/auth/token for cross-domain music requests
-        try {
-          const tokenResp = await axios.get('/api/auth/token');
-          if (tokenResp?.data?.token) {
-            setToken(tokenResp.data.token);
-          }
-        } catch {
-          // Token fetch failed, user can still use auth endpoints
-        }
+        // Cookie already carries auth for both services; no need to fetch or store token.
       } catch {
-        setUser(null);
-        setToken(null);
+  setUser(null);
       } finally {
         setLoading(false);
       }
@@ -43,7 +27,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, token, setToken }}>
+    <UserContext.Provider value={{ user, setUser, loading }}>
       {children}
     </UserContext.Provider>
   );
