@@ -212,6 +212,7 @@ export async function getCurrentUser(req, res) {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        profilePicture: user.profilePicture || "",
       },
     });
   } catch (error) {

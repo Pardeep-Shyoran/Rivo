@@ -13,6 +13,9 @@ const _config = {
     BACKEND_URL: process.env.BACKEND_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
     NODE_ENV: process.env.NODE_ENV || 'development',
+    IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
+    IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
+    IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
 }
 
 export default _config;

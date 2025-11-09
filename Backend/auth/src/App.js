@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
+import settingsRoutes from './routes/settings.routes.js';
 import passport from 'passport';
 import { Strategy as GoogleStrategy} from 'passport-google-oauth20';
 import config from './config/config.js'
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
 
 
 // Configure Passport to use Google OAuth 2.0 strategy
