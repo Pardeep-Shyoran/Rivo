@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MusicPlayerContext } from './MusicPlayerContextInstance';
 import axiosMusic from '../api/axiosMusicConfig';
+import { useUser } from './useUser';
 
 export const MusicPlayerProvider = ({ children }) => {
   const [currentMusic, setCurrentMusic] = useState(null);
@@ -13,8 +14,11 @@ export const MusicPlayerProvider = ({ children }) => {
   const [userPaused, setUserPaused] = useState(false);
   const [playHistory, setPlayHistory] = useState([]);
   const audioRef = useRef(null);
-  const RESTORE_KEY = 'rivo_player_state';
-  const HISTORY_KEY = 'rivo_play_history';
+  const { user } = useUser();
+  const userId = user?.id || user?._id || null;
+  // User-scoped storage keys to prevent leakage across accounts
+  const RESTORE_KEY = userId ? `rivo_player_state_${userId}` : 'rivo_player_state_anon';
+  const HISTORY_KEY = userId ? `rivo_play_history_${userId}` : 'rivo_play_history_anon';
   const location = useLocation();
   const lastNavTimeRef = useRef(0);
   const userPausedRef = useRef(false);
@@ -25,17 +29,46 @@ export const MusicPlayerProvider = ({ children }) => {
 
   // console.log('MusicPlayerProvider state:', { currentMusic: currentMusic?._id, isPlaying });
 
-  // Load play history from localStorage on mount
+  // Load & sync play history when user identity changes
   useEffect(() => {
+    let active = true;
+    // Clear current state on identity switch to avoid showing previous account data
+    setPlayHistory([]);
+    if (!userId) {
+      // If logged out, optionally clear anonymous keys
+      return () => { active = false; };
+    }
+    // 1. Load user-scoped local history immediately for fast UI
     try {
       const savedHistory = localStorage.getItem(HISTORY_KEY);
       if (savedHistory) {
         setPlayHistory(JSON.parse(savedHistory));
       }
     } catch (err) {
-      console.warn('Failed to load play history:', err?.message);
+      console.warn('Failed to load play history for user:', userId, err?.message);
     }
-  }, []);
+    // 2. Hydrate from server (authoritative) and persist
+    (async () => {
+      try {
+        const res = await axiosMusic.get('/api/music/history?limit=20');
+        if (!active) return;
+        const serverHistory = (res?.data?.history || []).map(entry => ({
+          ...entry.music,
+            playedAt: entry.playedAt,
+            _historyId: entry._id,
+        }));
+        setPlayHistory(serverHistory);
+        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(serverHistory)); } catch (storageErr) {
+          console.warn('Failed to persist server history locally:', storageErr?.message);
+        }
+      } catch (fetchErr) {
+        if (typeof window !== 'undefined') {
+          console.warn('History server sync failed for user', userId, fetchErr?.message);
+        }
+      }
+    })();
+    return () => { active = false; };
+  }, [userId, HISTORY_KEY]);
 
   // Initialize audio element and restore previous session if any
   useEffect(() => {
@@ -149,7 +182,7 @@ export const MusicPlayerProvider = ({ children }) => {
       audio.removeEventListener('pause', handlePause);
       audio.pause();
     };
-  }, []);
+  }, [RESTORE_KEY]);
 
   // Keep refs updated with latest values to avoid stale closures
   useEffect(() => { userPausedRef.current = userPaused; }, [userPaused]);
@@ -160,17 +193,19 @@ export const MusicPlayerProvider = ({ children }) => {
   const addToHistory = (music) => {
     setPlayHistory((prevHistory) => {
       // Remove if already exists to avoid duplicates
-      const filtered = prevHistory.filter((item) => item._id !== music._id);
+  const filtered = prevHistory.filter((item) => item._id !== music._id);
+      // Decorate with playedAt timestamp for streak tracking
+      const entry = { ...music, playedAt: new Date().toISOString() };
       // Add to the beginning, keep max 20 items
-      const newHistory = [music, ...filtered].slice(0, 20);
-      
+      const newHistory = [entry, ...filtered].slice(0, 20);
+
       // Save to localStorage
       try {
         localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
       } catch (err) {
         console.warn('Failed to save play history:', err?.message);
       }
-      
+
       return newHistory;
     });
   };
@@ -191,17 +226,28 @@ export const MusicPlayerProvider = ({ children }) => {
         setUserPaused(false);
       }
     } else {
-      // Play new music - music object already has musicUrl from API
+      // Play new music – always fetch fresh details to ensure valid presigned URLs
       try {
         setLoading(true);
-        
-        // Music object should already have musicUrl and coverImageUrl from API
-        setCurrentMusic(music);
-        audio.src = music.musicUrl;
+
+        // Always refresh from backend to avoid expired presigned URLs from cached lists/history
+        let musicData = music;
+        try {
+          const details = await axiosMusic.get(`/api/music/get-details/${music._id}`);
+          if (details?.data?.music) {
+            musicData = details.data.music;
+          }
+        } catch (e) {
+          // If refresh fails, fall back to provided object; playback may still succeed if URL is valid
+          console.warn('Failed to refresh music details, using provided object:', e?.message);
+        }
+
+        setCurrentMusic(musicData);
+        audio.src = musicData.musicUrl;
         audio.volume = volume;
-        
-        // Add to play history
-        addToHistory(music);
+
+        // Add to play history (decorate with playedAt)
+        addToHistory(musicData);
         
         // Wait for audio to be ready and then play
         const playPromise = audio.play();
@@ -215,10 +261,45 @@ export const MusicPlayerProvider = ({ children }) => {
               try {
                 sessionStorage.setItem(
                   RESTORE_KEY,
-                  JSON.stringify({ musicId: music._id, currentTime: audio.currentTime || 0, isPlaying: true, volume: audio.volume })
+                  JSON.stringify({ musicId: musicData._id, currentTime: audio.currentTime || 0, isPlaying: true, volume: audio.volume })
                 );
               } catch {
                 // ignore storage errors
+              }
+
+              // Log play to backend for streak sync and play history
+              // Backend will handle both daily activity (for streak) and individual history entry
+              try {
+                axiosMusic
+                  .post(`/api/music/play/${musicData._id}`, {
+                    // Optional: send additional metadata
+                    deviceId: navigator.userAgent.slice(0, 50), // Simple device fingerprint
+                  })
+                  .then(async () => {
+                    // Refresh history in background to reflect server order across devices
+                    try {
+                      const res = await axiosMusic.get('/api/music/history?limit=20');
+                      const serverHistory = (res?.data?.history || []).map((entry) => ({
+                        ...entry.music,
+                        playedAt: entry.playedAt,
+                        _historyId: entry._id,
+                      }));
+                      setPlayHistory(serverHistory);
+                      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(serverHistory)); } catch (persistErr) {
+                        console.warn('Failed to persist refreshed history:', persistErr?.message);
+                      }
+                    } catch (refreshErr) {
+                      // silent: server history refresh not critical
+                      if (typeof window !== 'undefined') {
+                        console.warn('Post-play history refresh failed:', refreshErr?.message);
+                      }
+                    }
+                  })
+                  .catch((err) => {
+                    console.warn('Failed to log play to backend:', err?.message);
+                  });
+              } catch {
+                // ignore logging errors
               }
             })
             .catch((error) => {

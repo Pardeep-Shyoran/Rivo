@@ -111,11 +111,13 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await axios.post("/api/auth/logout");
+      try { localStorage.removeItem('rivo_jwt'); } catch { /* ignore */ }
       // Reload the page to clear user context and redirect
-      // window.location.href = "/";
       navigate(0);
     } catch (error) {
       console.error("Logout failed:", error);
+      // Ensure legacy token is removed even if server call fails
+      try { localStorage.removeItem('rivo_jwt'); } catch { /* ignore */ }
       // Still reload on error to clear local state
       navigate(0);
     }

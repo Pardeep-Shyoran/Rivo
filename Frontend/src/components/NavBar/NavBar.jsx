@@ -33,9 +33,16 @@ const RegisterIcon = () => (
     <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Zm6.5-2v2h2v2h-2v2h-2v-2h-2v-2h2v-2Z" fill="currentColor"/>
   </svg>
 )
+const ListenerDashboardIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="currentColor"/>
+  </svg>
+)
 
 const allRoutes = [
   { to: '/', label: 'Home', icon: HomeIcon, requiresAuth: false, publicOnly: false, requiredRole: null },
+  { to: '/listener/dashboard', label: 'Listener Dashboard', icon: ListenerDashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'listener' },
+  { to: '/listener/create-playlist', label: 'Create Playlist', icon: PlaylistIcon, requiresAuth: true, publicOnly: false, requiredRole: 'listener' },
   { to: '/artist/dashboard', label: 'Artist Dashboard', icon: DashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
   { to: '/artist/upload', label: 'Upload Music', icon: UploadIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
   { to: '/artist/create-playlist', label: 'Create Playlist', icon: PlaylistIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },

@@ -8,12 +8,15 @@ import PageNotFound from '../pages/PageNotFound/PageNotFound'
 import ArtistDashboard from '../pages/Artist/ArtistDashboard/ArtistDashboard'
 import UploadMusic from '../pages/Artist/UploadMusic/UploadMusic'
 import CreatePlaylist from '../pages/Artist/CreatePlaylist/CreatePlaylist'
+import ListenerCreatePlaylist from '../pages/Listener/CreatePlaylist/CreatePlaylist'
 import PlaylistDetail from '../pages/Playlist/PlaylistDetail'
 import ArtistDetail from '../pages/Artist/ArtistDetail/ArtistDetail'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import { useUser } from '../contexts/useUser'
 import Loader from '../components/Loader/Loader'
+import ListenerDashboard from '../pages/Listener/DashBoard/DashBoard'
+import MyPlaylists from '../pages/Listener/MyPlaylists/MyPlaylists'
 
 const RootRoute = () => {
   const { user, loading } = useUser();
@@ -86,8 +89,33 @@ const MainRoutes = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/listener/create-playlist" 
+              element={
+                <ProtectedRoute>
+                  <ListenerCreatePlaylist />
+                </ProtectedRoute>
+              }
+            />
 
-            
+            {/* Listener route - accessible to all authenticated users */}
+            <Route 
+              path="/listener/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <ListenerDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/listener/playlists" 
+              element={
+                <ProtectedRoute>
+                  <MyPlaylists />
+                </ProtectedRoute>
+              }
+            />
+
             <Route 
               path="/playlist/:playlistId" 
               element={

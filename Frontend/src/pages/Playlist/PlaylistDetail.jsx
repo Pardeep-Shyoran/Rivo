@@ -75,11 +75,17 @@ const PlaylistDetail = () => {
             <div className={styles.playlistIcon}>📋</div>
             <div>
               <h1 className={styles.playlistTitle}>{playlist.title}</h1>
+              {playlist.description && (
+                <p className={styles.playlistDescription}>{playlist.description}</p>
+              )}
               {playlist.artist && (
                 <p className={styles.playlistArtist}>By {playlist.artist}</p>
               )}
               <p className={styles.playlistCount}>
                 {playlist.musics?.length || 0} {playlist.musics?.length === 1 ? 'track' : 'tracks'}
+                {playlist.isPublic !== undefined && (
+                  <span className={styles.playlistVisibility}> • {playlist.isPublic ? 'Public' : 'Private'}</span>
+                )}
               </p>
             </div>
           </div>

@@ -68,6 +68,14 @@
   margin-bottom: 0.5rem;
 }
 
+.playlistDescription {
+  font-size: 1rem;
+  color: var(--text-color3);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
 .playlistArtist {
   font-size: 1.1rem;
   color: var(--text-color4);
@@ -78,6 +86,15 @@
   font-size: 1rem;
   color: var(--text-color5);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.playlistVisibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .musicsGrid {
@@ -105,8 +122,17 @@
     font-size: 3rem;
   }
 
-  .playlistTitle {
+.playlistTitle {
     font-size: 1.5rem;
+  }
+
+  .playlistDescription {
+    font-size: 0.9rem;
+  }
+
+  .playlistCount {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .musicsGrid {
