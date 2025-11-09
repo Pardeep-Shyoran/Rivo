@@ -11,6 +11,7 @@ import CreatePlaylist from '../pages/Artist/CreatePlaylist/CreatePlaylist'
 import ListenerCreatePlaylist from '../pages/Listener/CreatePlaylist/CreatePlaylist'
 import PlaylistDetail from '../pages/Playlist/PlaylistDetail'
 import ArtistDetail from '../pages/Artist/ArtistDetail/ArtistDetail'
+import Settings from '../pages/Settings/Settings'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import { useUser } from '../contexts/useUser'
@@ -132,6 +133,17 @@ const MainRoutes = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Settings route - accessible to all authenticated users */}
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="*" element={<PageNotFound />} />
         </Routes>
     </>
