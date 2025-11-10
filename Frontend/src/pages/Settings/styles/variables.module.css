@@ -1,0 +1,82 @@
+/**
+ * CSS Variables and Theme Tokens
+ * Central location for all design tokens used across Settings components
+ */
+
+.root {
+  /* Colors - Dark Theme */
+  --tab-text-color: rgba(255, 255, 255, 0.5);
+  --tab-text-hover: rgba(255, 255, 255, 0.85);
+  --tab-text-active: #fff;
+  --tab-bg-hover: rgba(255, 255, 255, 0.04);
+  --tab-bg-active-start: rgba(99, 102, 241, 0.15);
+  --tab-bg-active-end: rgba(139, 92, 246, 0.12);
+  --tab-bg-active-hover-start: rgba(99, 102, 241, 0.2);
+  --tab-bg-active-hover-end: rgba(139, 92, 246, 0.15);
+  --section-desc-color: rgba(255, 255, 255, 0.45);
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 2.5rem;
+  --spacing-3xl: 3rem;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-full: 50%;
+
+  /* Transitions */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 12px rgba(99, 102, 241, 0.15);
+  --shadow-md: 0 4px 16px rgba(99, 102, 241, 0.15);
+  --shadow-lg: 0 8px 32px var(--box-shadow-color);
+  --shadow-xl: 0 12px 40px var(--box-shadow-color);
+
+  /* Typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 0.9375rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.0625rem;
+  --font-size-xl: 1.35rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.75rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.6;
+
+  --letter-spacing-tight: -0.03em;
+  --letter-spacing-base: -0.01em;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .root {
+  --tab-text-color: #64748b;
+  --tab-text-hover: #334155;
+  --tab-text-active: #1e293b;
+  --tab-bg-hover: rgba(0, 0, 0, 0.03);
+  --tab-bg-active-start: rgba(99, 102, 241, 0.12);
+  --tab-bg-active-end: rgba(139, 92, 246, 0.1);
+  --tab-bg-active-hover-start: rgba(99, 102, 241, 0.16);
+  --tab-bg-active-hover-end: rgba(139, 92, 246, 0.12);
+  --section-desc-color: #64748b;
+}

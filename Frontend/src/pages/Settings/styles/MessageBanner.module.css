@@ -1,0 +1,95 @@
+/**
+ * Message Banner Component Styles
+ * Error and success message banners
+ */
+
+.errorMessage,
+.successMessage {
+  position: relative;
+  padding: 1.125rem 3.5rem 1.125rem 1.5rem;
+  border-radius: var(--radius-xl, 14px);
+  margin-bottom: 1.75rem;
+  font-size: var(--font-size-base, 0.9375rem);
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 100%;
+  backdrop-filter: blur(10px);
+  font-weight: var(--font-weight-medium, 500);
+  letter-spacing: var(--letter-spacing-base, -0.01em);
+}
+
+.errorMessage {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(220, 38, 38, 0.08));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+}
+
+.successMessage {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(22, 163, 74, 0.08));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 50%;
+  right: 1.125rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.375rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: all var(--transition-fast, 0.2s cubic-bezier(0.4, 0, 0.2, 1));
+  border-radius: var(--radius-sm, 6px);
+}
+
+.closeBtn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-50%) rotate(90deg);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .errorMessage,
+  .successMessage {
+    padding: 0.875rem 2.5rem 0.875rem 1rem;
+    font-size: var(--font-size-sm, 0.9rem);
+  }
+
+  .closeBtn {
+    right: 0.75rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .errorMessage,
+  .successMessage {
+    padding: 0.75rem 2.25rem 0.75rem 0.875rem;
+    font-size: var(--font-size-sm, 0.85rem);
+    margin-bottom: 1.25rem;
+  }
+
+  .closeBtn {
+    right: 0.625rem;
+    font-size: 1rem;
+    padding: 0.125rem;
+  }
+}

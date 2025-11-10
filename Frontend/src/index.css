@@ -34,7 +34,20 @@
   --drop-shadow-color: rgba(0, 0, 0, 0.4);
   --text-color3: #bcbcbc;
   --text-color4: #a3a3a3bb;
-  --text-color5: #b0b0b0;
+  --text-color5: #64748b;
+  
+  /* Card and input backgrounds */
+  --card-background: #f8fafc;
+  --hover-background: #f1f5f9;
+  --border-hover-color: #cbd5e1;
+  --input-background: #f8fafc;
+  --input-hover-background: #f1f5f9;
+  --input-focus-background: #f1f5f9;
+  
+  /* Toggle switch */
+  --toggle-background: #e2e8f0;
+  --toggle-hover-background: #cbd5e1;
+  --toggle-slider: #94a3b8;
 }
 
 /* Dark theme variables */
@@ -48,6 +61,19 @@
   --text-color3: #5e5e5ebb;
   --text-color4: #5a5a5abb;
   --text-color5: #acacac;
+  
+  /* Card and input backgrounds */
+  --card-background: rgba(255, 255, 255, 0.02);
+  --hover-background: rgba(255, 255, 255, 0.04);
+  --border-hover-color: rgba(255, 255, 255, 0.08);
+  --input-background: rgba(255, 255, 255, 0.05);
+  --input-hover-background: rgba(255, 255, 255, 0.08);
+  --input-focus-background: rgba(255, 255, 255, 0.08);
+  
+  /* Toggle switch */
+  --toggle-background: rgba(255, 255, 255, 0.1);
+  --toggle-hover-background: rgba(255, 255, 255, 0.12);
+  --toggle-slider: rgba(255, 255, 255, 0.6);
 }
 
 * {

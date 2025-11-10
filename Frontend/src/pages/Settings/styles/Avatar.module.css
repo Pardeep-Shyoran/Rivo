@@ -1,0 +1,138 @@
+/**
+ * Avatar Component Styles
+ * Profile picture display and actions
+ */
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg, 1.5rem);
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-full, 50%);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold, 700);
+  color: white;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarInitial {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold, 700);
+}
+
+.avatarActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.changeAvatarBtn {
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-color);
+  font-size: var(--font-size-sm, 0.9rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-base, 0.3s ease);
+  font-family: var(--font-family4);
+  display: inline-block;
+}
+
+.changeAvatarBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--primary-color);
+}
+
+.removeAvatarBtn {
+  padding: 0.625rem 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-sm, 8px);
+  color: #ef4444;
+  font-size: var(--font-size-sm, 0.9rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-base, 0.3s ease);
+  font-family: var(--font-family4);
+}
+
+.removeAvatarBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+.removeAvatarBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 1.75rem;
+  }
+
+  .avatarInitial {
+    font-size: 2rem;
+  }
+
+  .avatarContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md, 1rem);
+  }
+
+  .avatarActions {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .changeAvatarBtn,
+  .removeAvatarBtn {
+    flex: 1;
+    min-width: 0;
+    padding: 0.625rem 0.875rem;
+    font-size: var(--font-size-xs, 0.85rem);
+    text-align: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .avatar {
+    width: 70px;
+    height: 70px;
+    font-size: 1.5rem;
+  }
+
+  .avatarInitial {
+    font-size: 1.75rem;
+  }
+
+  .changeAvatarBtn,
+  .removeAvatarBtn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+}

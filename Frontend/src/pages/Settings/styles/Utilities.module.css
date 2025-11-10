@@ -1,0 +1,94 @@
+/**
+ * Utility Styles
+ * Dividers, info boxes, danger zones, and other utility components
+ */
+
+.divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: var(--spacing-xl, 2rem) 0;
+}
+
+.infoBox {
+  padding: var(--spacing-md, 1rem) 1.25rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-md, 10px);
+  color: var(--text-color);
+  font-size: var(--font-size-base, 0.95rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
+}
+
+.dangerZone {
+  padding: var(--spacing-lg, 1.5rem);
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg, 12px);
+  margin-top: var(--spacing-xl, 2rem);
+}
+
+.dangerTitle {
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-semibold, 600);
+  color: #ef4444;
+  margin-bottom: var(--spacing-md, 1rem);
+}
+
+.dangerBtn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-sm, 8px);
+  color: #ef4444;
+  font-size: var(--font-size-sm, 0.9rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-base, 0.3s ease);
+  font-family: var(--font-family4);
+  margin-bottom: 0.75rem;
+}
+
+.dangerBtn:last-child {
+  margin-bottom: 0;
+}
+
+.dangerBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+.dangerBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .divider {
+    margin: var(--spacing-lg, 1.5rem) 0;
+  }
+
+  .infoBox {
+    padding: 0.875rem 1rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    margin-bottom: 1.25rem;
+  }
+
+  .dangerZone {
+    padding: var(--spacing-md, 1rem);
+    margin-top: var(--spacing-lg, 1.5rem);
+  }
+
+  .dangerTitle {
+    font-size: var(--font-size-md, 1rem);
+    margin-bottom: 0.875rem;
+  }
+
+  .dangerBtn {
+    padding: 0.75rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    margin-bottom: 0.625rem;
+  }
+}
