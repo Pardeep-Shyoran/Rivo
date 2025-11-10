@@ -46,7 +46,7 @@ const SettingsIcon = () => (
 
 const allRoutes = [
   { to: '/', label: 'Home', icon: HomeIcon, requiresAuth: false, publicOnly: false, requiredRole: null },
-  { to: '/listener/dashboard', label: 'Listener Dashboard', icon: ListenerDashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'listener' },
+  { to: '/listener/dashboard', label: 'Dashboard', icon: ListenerDashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'listener' },
   { to: '/listener/create-playlist', label: 'Create Playlist', icon: PlaylistIcon, requiresAuth: true, publicOnly: false, requiredRole: 'listener' },
   { to: '/artist/dashboard', label: 'Artist Dashboard', icon: DashboardIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
   { to: '/artist/upload', label: 'Upload Music', icon: UploadIcon, requiresAuth: true, publicOnly: false, requiredRole: 'artist' },
