@@ -23,6 +23,18 @@ function startListener() {
         );
     });
 
+    // User login notification
+    subscribeToQueue('user_logged_in', async (msg) => {
+        const { email, fullName, timestamp, ip, userAgent } = msg;
+        const { subject, text, html } = templates.userLoggedIn({ 
+            fullName, 
+            timestamp, 
+            ip, 
+            userAgent 
+        });
+        await sendEmail(email, subject, text, html);
+    });
+
     // Profile update security notification
         subscribeToQueue('user_profile_updated', async (msg) => {
             const { email, changed = [], timestamp, ip, userAgent } = msg;

@@ -63,6 +63,21 @@ export const templates = {
     `,
     text: `Profile photo removed at ${timestamp}. IP: ${ip}. Device: ${userAgent}. If not you, secure account.`
   }),
+  userLoggedIn: ({ fullName, timestamp, ip, userAgent }) => ({
+    subject: 'Security Alert: New Login Detected',
+    html: `
+      <h2>Welcome Back, ${fullName.firstName || ''}!</h2>
+      <p>A new login to your Rivo account was detected.</p>
+      <p><strong>Time:</strong> ${timestamp || new Date().toLocaleString()}<br/>
+      <strong>IP Address:</strong> ${ip || 'unknown'}<br/>
+      <strong>Device:</strong> ${userAgent || 'unknown'}</p>
+      <p>If this was you, you can safely ignore this email.</p>
+      <p><strong>If this wasn't you:</strong> Please secure your account immediately by changing your password and reviewing your account activity.</p>
+      <hr />
+      <p style="font-size:12px;color:#666;">You're receiving this email for account security. This is an automated notification from Rivo.</p>
+    `,
+    text: `New login detected for ${fullName.firstName || ''} ${fullName.lastName || ''} at ${timestamp || new Date().toLocaleString()}. IP: ${ip || 'unknown'}. Device: ${userAgent || 'unknown'}. If not you, secure your account immediately.`
+  }),
 };
 
 // Lazy singleton so startup doesn't fail if Gmail creds missing (service can still run & log)
