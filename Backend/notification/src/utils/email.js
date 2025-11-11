@@ -103,27 +103,49 @@ function buildTransporter() {
       clientSecret: config.CLIENT_SECRET,
       refreshToken: config.REFRESH_TOKEN,
     },
+    // Add timeouts and retry configuration
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 5000,    // 5 seconds
+    socketTimeout: 15000,     // 15 seconds
+    pool: true,               // Use pooled connections
+    maxConnections: 5,        // Max concurrent connections
+    maxMessages: 100,         // Max messages per connection
+    rateDelta: 1000,          // Rate limiting (1 second between messages)
+    rateLimit: 5,             // Max 5 messages per rateDelta
   });
 
-  transporter.verify((error) => {
-    if (error) {
-      console.error('[email] Error verifying transporter:', error.message || error);
-    } else {
-      console.log('[email] Transporter verified. Ready to send messages');
-    }
-  });
+  // Verify with timeout
+  const verifyPromise = transporter.verify();
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Verification timeout')), 10000)
+  );
+  
+  Promise.race([verifyPromise, timeoutPromise])
+    .then(() => {
+      console.log('[email] ✅ Gmail transporter verified. Ready to send emails');
+    })
+    .catch((error) => {
+      console.error('[email] ⚠️  Transporter verification failed:', error.message);
+      console.error('[email] Possible issues:');
+      console.error('  - Gmail OAuth2 credentials expired or invalid');
+      console.error('  - Gmail blocking connections from this IP');
+      console.error('  - Network connectivity issues');
+      console.error('[email] Emails may fail to send. Check your Gmail OAuth2 setup.');
+    });
 
   return transporter;
 }
 
-// Function to send email
-export default async function sendEmail(to, subject, text, html) {
+// Function to send email with retry logic
+export default async function sendEmail(to, subject, text, html, retries = 2) {
   try {
     const tx = buildTransporter();
     if (!tx) {
-      console.error('[email] Cannot send email: transporter not configured');
+      console.error('[email] ❌ Cannot send email: transporter not configured');
       return;
     }
+
+    console.log(`[email] 📤 Attempting to send email to: ${to}`);
 
     const info = await tx.sendMail({
       from: `"Rivo" <${config.EMAIL_USER}>`,
@@ -133,10 +155,28 @@ export default async function sendEmail(to, subject, text, html) {
       html,
     });
 
-    console.log('[email] Message sent:', info.messageId);
+    console.log('[email] ✅ Email sent successfully:', info.messageId);
     const preview = nodemailer.getTestMessageUrl(info);
     if (preview) console.log('[email] Preview URL:', preview);
   } catch (error) {
-    console.error('[email] Error sending email:', error.message || error);
+    console.error('[email] ❌ Error sending email:', error.message || error);
+    
+    // Log specific error types
+    if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
+      console.error('[email] 🔌 Connection timeout - Gmail may be blocking this IP');
+      console.error('[email] 💡 Solutions:');
+      console.error('  1. Verify Gmail OAuth2 credentials are correct');
+      console.error('  2. Check if refresh token is expired');
+      console.error('  3. Consider using SendGrid, AWS SES, or Mailgun instead');
+    } else if (error.code === 'EAUTH') {
+      console.error('[email] 🔐 Authentication failed - Check OAuth2 credentials');
+    }
+    
+    // Retry logic
+    if (retries > 0 && (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET')) {
+      console.log(`[email] 🔄 Retrying... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+      return sendEmail(to, subject, text, html, retries - 1);
+    }
   }
 }
