@@ -136,10 +136,18 @@ function buildTransporter() {
   return transporter;
 }
 
+// Reuse the same transporter for all emails
+let globalTransporter = null;
+
 // Function to send email with retry logic
 export default async function sendEmail(to, subject, text, html, retries = 2) {
   try {
-    const tx = buildTransporter();
+    // Build transporter once and reuse
+    if (!globalTransporter) {
+      globalTransporter = buildTransporter();
+    }
+    
+    const tx = globalTransporter;
     if (!tx) {
       console.error('[email] ❌ Cannot send email: transporter not configured');
       return;
