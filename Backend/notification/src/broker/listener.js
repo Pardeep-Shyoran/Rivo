@@ -2,8 +2,11 @@ import { subscribeToQueue } from './rabbit.js';
 import sendEmail, { templates } from '../utils/email.js';
 
 function startListener() {
-    // Account creation welcome email
-    subscribeToQueue('user_created', async (msg) => {
+    console.log('🎧 Starting message listeners...');
+    
+    try {
+        // Account creation welcome email
+        subscribeToQueue('user_created', async (msg) => {
         const { email, role, fullName: { firstName, lastName } = {} } = msg;
 
         const html = `
@@ -63,6 +66,12 @@ function startListener() {
                 const { subject, text, html } = templates.profilePhotoDeleted({ timestamp, ip, userAgent });
                 await sendEmail(email, subject, text, html);
             });
+        
+        console.log('✅ All message listeners registered successfully');
+    } catch (error) {
+        console.error('❌ Failed to start listeners:', error.message);
+        console.error('⚠️  Emails will NOT be sent until RabbitMQ connection is established');
+    }
 }
 
 export default startListener;

@@ -7,6 +7,8 @@ let isConnecting = false;
 let retryCount = 0;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 10000; // 10 seconds
+let lastConnectionAttempt = null;
+let lastSuccessfulConnection = null;
 
 export async function connect() {
   // Prevent multiple simultaneous connection attempts
@@ -18,7 +20,13 @@ export async function connect() {
   isConnecting = true;
 
   try {
-    console.log('Connecting to RabbitMQ...');
+    if (!config.RABBITMQ_URI) {
+      throw new Error('RABBITMQ_URI environment variable is not set. Please configure it in Render dashboard.');
+    }
+
+    console.log('🔌 Connecting to RabbitMQ...');
+    console.log('📍 RabbitMQ Host:', config.RABBITMQ_URI.split('@')[1]?.split('/')[0] || 'unknown');
+    
     connection = await amqp.connect(config.RABBITMQ_URI, {
       heartbeat: 60,
       clientProperties: { 
@@ -58,24 +66,33 @@ export async function connect() {
     });
 
     console.log('✅ Connected to RabbitMQ successfully!');
+    console.log('📬 Notification service is ready to receive messages');
     retryCount = 0;
     isConnecting = false;
+    lastSuccessfulConnection = new Date().toISOString();
   } catch (err) {
     connection = null;
     channel = null;
     isConnecting = false;
+    lastConnectionAttempt = new Date().toISOString();
     
-    console.error('Failed to connect to RabbitMQ:', err?.message || err);
+    console.error('❌ Failed to connect to RabbitMQ');
+    console.error('Error details:', {
+      message: err?.message,
+      code: err?.code,
+      type: err?.name,
+    });
     
     if (retryCount < MAX_RETRIES) {
       retryCount++;
-      console.log(`Will retry in ${RETRY_DELAY/1000} seconds (attempt ${retryCount}/${MAX_RETRIES})`);
+      console.log(`🔄 Will retry in ${RETRY_DELAY/1000} seconds (attempt ${retryCount}/${MAX_RETRIES})`);
       setTimeout(() => {
         isConnecting = false;
         connect();
       }, RETRY_DELAY);
     } else {
-      console.error('Max connection retries reached');
+      console.error('🚨 CRITICAL: Max connection retries reached. Notification service will NOT send emails!');
+      console.error('🔧 Action required: Check RABBITMQ_URI environment variable and network connectivity');
     }
   }
 }
@@ -91,21 +108,40 @@ export async function publishToQueue(queueName, data) {
 
 export async function subscribeToQueue(queueName, callback) {
   if (!channel) {
-    throw new Error('Channel not initialized');
+    console.error(`❌ Cannot subscribe to queue '${queueName}': RabbitMQ channel not initialized`);
+    throw new Error('Channel not initialized. Check RabbitMQ connection.');
   }
+  
   await channel.assertQueue(queueName, { durable: true });
+  console.log(`👂 Listening to queue: ${queueName}`);
 
   channel.consume(queueName, async (msg) => {
     if (msg !== null) {
       try {
-        await callback(JSON.parse(msg.content.toString()));
+        const data = JSON.parse(msg.content.toString());
+        console.log(`📨 Received message from '${queueName}':`, data.email || 'no email');
+        await callback(data);
         channel.ack(msg);
+        console.log(`✅ Message processed successfully from '${queueName}'`);
       } catch (err) {
-        console.error('Error processing message:', err);
-        // Optionally do not ack to requeue the message or ack to discard
+        console.error(`❌ Error processing message from '${queueName}':`, err.message);
+        // Ack anyway to prevent infinite requeue loops
+        channel.ack(msg);
       }
     }
   });
+}
+
+// Get connection status for health checks
+export function getConnectionStatus() {
+  return {
+    connected: !!connection && !!channel,
+    isConnecting,
+    retryCount,
+    maxRetries: MAX_RETRIES,
+    lastConnectionAttempt,
+    lastSuccessfulConnection,
+  };
 }
 
 // Graceful shutdown function
