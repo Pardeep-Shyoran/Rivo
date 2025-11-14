@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import * as musicController from "../controllers/music.controller.js";
 import * as authMiddleware from "../middlewares/auth.middleware.js";
+import * as followController from "../controllers/follow.controller.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -131,6 +132,36 @@ router.get(
   "/history",
   authMiddleware.authUserMiddleware,
   musicController.getPlayHistory
+);
+
+// Follow system (authenticated users)
+router.post(
+  "/artists/:artistId/follow",
+  authMiddleware.authUserMiddleware,
+  followController.followArtist
+);
+
+router.delete(
+  "/artists/:artistId/follow",
+  authMiddleware.authUserMiddleware,
+  followController.unfollowArtist
+);
+
+router.get(
+  "/artists/:artistId/follow/status",
+  authMiddleware.authUserMiddleware,
+  followController.isFollowingArtist
+);
+
+router.get(
+  "/artists/:artistId/followers/count",
+  followController.getFollowersCount
+);
+
+router.get(
+  "/me/following",
+  authMiddleware.authUserMiddleware,
+  followController.getMyFollowedArtists
 );
 
 export default router;

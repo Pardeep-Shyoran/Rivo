@@ -33,4 +33,11 @@ router.get('/token', authMiddleware, authController.getToken);
 // Logout Route
 router.post('/logout', authMiddleware, authController.logout);
 
+// Public artist profile endpoints (no auth required)
+// Get artist profile by ID
+router.get('/artist/public/:artistId', authController.getPublicArtistProfile);
+
+// Get artist profile by name
+router.get('/artist/public/name/:artistName', authController.getPublicArtistProfileByName);
+
 export default router;

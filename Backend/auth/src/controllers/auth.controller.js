@@ -255,3 +255,96 @@ export async function getToken(req, res) {
     return res.status(500).json({ message: "Server error" });
   }
 }
+
+// Get public artist profile by artist ID (for artist detail pages)
+export async function getPublicArtistProfile(req, res) {
+  try {
+    const { artistId } = req.params;
+
+    // Find artist user by ID
+    const artist = await userModel.findById(artistId).select("-password -__v -notifications -privacy -preferences");
+
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
+    // Verify the user is actually an artist
+    if (artist.role !== "artist") {
+      return res.status(400).json({ message: "User is not an artist" });
+    }
+
+    // Return public artist information
+    res.status(200).json({
+      message: "Artist profile fetched successfully",
+      artist: {
+        id: artist._id,
+        fullName: artist.fullName,
+        displayName: `${artist.fullName.firstName} ${artist.fullName.lastName}`,
+        bio: artist.bio || "",
+        profilePicture: artist.profilePicture || "",
+        role: artist.role,
+        createdAt: artist.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching artist profile:", error);
+    res.status(500).json({ 
+      message: "Error fetching artist profile",
+      error: error.message 
+    });
+  }
+}
+
+// Get public artist profile by artist name (alternative endpoint)
+export async function getPublicArtistProfileByName(req, res) {
+  try {
+    const { artistName } = req.params;
+    const decodedName = decodeURIComponent(artistName);
+
+    // Search for artist by name (case-insensitive)
+    // Note: This searches for exact full name match
+    const nameParts = decodedName.trim().split(/\s+/);
+    
+    let query = { role: "artist" };
+    
+    if (nameParts.length === 1) {
+      // Single name - could be first or last name
+      query.$or = [
+        { "fullName.firstName": new RegExp(`^${nameParts[0]}$`, "i") },
+        { "fullName.lastName": new RegExp(`^${nameParts[0]}$`, "i") }
+      ];
+    } else {
+      // Multiple parts - assume first name(s) and last name
+      const firstName = nameParts.slice(0, -1).join(" ");
+      const lastName = nameParts[nameParts.length - 1];
+      query["fullName.firstName"] = new RegExp(`^${firstName}$`, "i");
+      query["fullName.lastName"] = new RegExp(`^${lastName}$`, "i");
+    }
+
+    const artist = await userModel.findOne(query).select("-password -__v -notifications -privacy -preferences");
+
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
+    // Return public artist information
+    res.status(200).json({
+      message: "Artist profile fetched successfully",
+      artist: {
+        id: artist._id,
+        fullName: artist.fullName,
+        displayName: `${artist.fullName.firstName} ${artist.fullName.lastName}`,
+        bio: artist.bio || "",
+        profilePicture: artist.profilePicture || "",
+        role: artist.role,
+        createdAt: artist.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching artist profile by name:", error);
+    res.status(500).json({ 
+      message: "Error fetching artist profile",
+      error: error.message 
+    });
+  }
+}
