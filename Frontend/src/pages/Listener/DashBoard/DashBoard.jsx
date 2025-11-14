@@ -1,9 +1,11 @@
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './DashBoard.module.css';
 import StatCard from '../../../components/StatCard/StatCard';
 import MusicCard from '../../../components/MusicCard/MusicCard';
 import PlaylistCard from '../../../components/PlaylistCard/PlaylistCard';
 import Loader from '../../../components/Loader/Loader';
+import ArtistCard from '../../../components/ArtistCard/ArtistCard';
 import useListenerDashboardData from '../../../hooks/useListenerDashboardData';
 import { useMusicPlayer } from '../../../contexts/useMusicPlayer';
 
@@ -12,6 +14,7 @@ const DashBoard = () => {
   const {
     musics,
     playlists,
+    followedArtists,
     loading,
     error,
   // totalTracks removed from stats
@@ -27,6 +30,43 @@ const DashBoard = () => {
   } = useListenerDashboardData({ limit: 36 });
 
   const { playHistory } = useMusicPlayer();
+
+  const timeAgo = useCallback((timestamp) => {
+    if (!timestamp) return null;
+    const diff = Date.now() - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }, []);
+
+  const followedArtistCards = useMemo(
+    () =>
+      (followedArtists || []).map((artist) => {
+        const name = artist.artistName || 'Unknown Artist';
+        const latestDate = artist.latestTrack?.createdAt
+          ? new Date(artist.latestTrack.createdAt).getTime()
+          : null;
+
+        return {
+          name,
+          count: artist.trackCount || 0,
+          latestSong: artist.latestTrack
+            ? {
+                title: artist.latestTrack.title,
+                coverImageUrl: artist.latestTrack.coverImageUrl,
+              }
+            : null,
+          latestDate,
+          artistId: artist.artistId,
+        };
+      }),
+    [followedArtists]
+  );
 
   const stats = [
     { icon: '📁', value: totalPlaylists, label: 'My Playlists', onClick: () => navigate('/listener/playlists') },
@@ -67,6 +107,30 @@ const DashBoard = () => {
               <StatCard key={s.label} icon={s.icon} value={s.value} label={s.label} onClick={s.onClick} />
             ))}
           </section>
+
+          {followedArtistCards.length > 0 && (
+            <section className={styles.section} aria-label="followed artists">
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Artists You Follow</h2>
+                <p className={styles.sectionDesc}>Your favourite creators at a glance</p>
+              </div>
+              <div className={styles.gridArtists}>
+                {followedArtistCards.slice(0, 6).map((artist) => (
+                  <ArtistCard
+                    key={artist.artistId || artist.name}
+                    artist={artist}
+                    isPlayingArtist={false}
+                    loading={false}
+                    onPlay={() => {}}
+                    onSelect={() => navigate(`/artists/${encodeURIComponent(artist.name)}`)}
+                    enableCounts
+                    disableAutoPlay
+                    timeAgo={timeAgo}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           {playHistory?.length > 0 && (
             <section className={styles.section} aria-label="continue listening">

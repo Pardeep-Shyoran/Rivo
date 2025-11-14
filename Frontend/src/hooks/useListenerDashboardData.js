@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import musicApi from '../api/axiosMusicConfig.jsx';
+import { getMyFollowedArtists } from '../api/followAPI';
 import { useUser } from '../contexts/useUser';
 import { useMusicPlayer } from '../contexts/useMusicPlayer';
 import { usePlayHistory } from './usePlayHistory';
@@ -24,6 +25,7 @@ export function useListenerDashboardData(options = {}) {
   const playHistory = serverPlayHistory.length > 0 ? serverPlayHistory : localPlayHistory;
   const [musics, setMusics] = useState([]);
   const [playlists, setPlaylists] = useState([]);
+  const [followedArtists, setFollowedArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,15 +34,22 @@ export function useListenerDashboardData(options = {}) {
     (async () => {
       setLoading(true);
       setError(null);
+      setFollowedArtists([]);
       try {
         // Fetch only this user's playlists (listener or artist) instead of all playlists
-        const [musicsRes, playlistsRes] = await Promise.all([
+        const followPromise = user
+          ? getMyFollowedArtists().catch(() => ({ data: { artists: [] } }))
+          : Promise.resolve({ data: { artists: [] } });
+
+        const [musicsRes, playlistsRes, followedRes] = await Promise.all([
           musicApi.get(`/api/music?limit=${limit}`),
           musicApi.get('/api/music/user/playlist'),
+          followPromise,
         ]);
         if (!active) return;
         setMusics(musicsRes.data.musics || []);
         setPlaylists(playlistsRes.data.playlists || []);
+        setFollowedArtists(followedRes?.data?.artists || []);
       } catch (err) {
         if (active) setError(err?.response?.data?.message || err.message || 'Failed to load data');
       } finally {
@@ -48,7 +57,7 @@ export function useListenerDashboardData(options = {}) {
       }
     })();
     return () => { active = false; };
-  }, [limit]);
+  }, [limit, user]);
 
   const [serverStreak, setServerStreak] = useState(null);
 
@@ -182,7 +191,7 @@ export function useListenerDashboardData(options = {}) {
     };
   }, [musics, playlists, playHistory, user, serverStreak]);
 
-  return { musics, playlists, loading, error, ...derived };
+  return { musics, playlists, followedArtists, loading, error, ...derived };
 }
 
 export default useListenerDashboardData;
