@@ -12,5 +12,8 @@ export const getFollowStatus = (artistId) =>
 export const getFollowersCount = (artistId) =>
   musicAxios.get(`/api/music/artists/${artistId}/followers/count`);
 
+export const getMyFollowers = () =>
+  musicAxios.get('/api/music/artist/followers');
+
 export const getMyFollowedArtists = () =>
   musicAxios.get('/api/music/me/following');

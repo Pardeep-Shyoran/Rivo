@@ -7,14 +7,17 @@ import Tabs from '../../../components/Tabs/Tabs';
 import MusicTab from '../../../components/MusicTab/MusicTab';
 import PlaylistTab from '../../../components/PlaylistTab/PlaylistTab';
 import Loader from '../../../components/Loader/Loader';
+import FollowersTab from '../../../components/FollowersTab/FollowersTab';
 import { useMusicPlayer } from '../../../contexts/useMusicPlayer';
 
 const ArtistDashboard = () => {
   const navigate = useNavigate();
   const [musics, setMusics] = useState([]);
   const [playlists, setPlaylists] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('musics');
   const { currentMusic } = useMusicPlayer();
 
   // Fetch artist's musics
@@ -23,8 +26,8 @@ const ArtistDashboard = () => {
       const response = await axiosInstance.get('/api/music/artist/musics');
       setMusics(response.data.musics || []);
     } catch (err) {
-      setError('Failed to fetch musics');
-      console.error(err);
+      setError((prev) => prev ?? 'Failed to fetch musics');
+      console.error('Failed to fetch musics', err);
     }
   };
 
@@ -34,15 +37,28 @@ const ArtistDashboard = () => {
       const response = await axiosInstance.get('/api/music/artist/playlist');
       setPlaylists(response.data.playlists || []);
     } catch (err) {
-      setError('Failed to fetch playlists');
-      console.error(err);
+      setError((prev) => prev ?? 'Failed to fetch playlists');
+      console.error('Failed to fetch playlists', err);
+    }
+  };
+
+  // Fetch artist's followers
+  const fetchFollowers = async () => {
+    try {
+      const response = await axiosInstance.get('/api/music/artist/followers');
+      const followersList = response.data.followers || [];
+      setFollowers(followersList);
+    } catch (err) {
+      setError((prev) => prev ?? 'Failed to fetch followers');
+      console.error('Failed to fetch followers', err);
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchMusics(), fetchPlaylists()]);
+      setError(null);
+      await Promise.all([fetchMusics(), fetchPlaylists(), fetchFollowers()]);
       setLoading(false);
     };
     fetchData();
@@ -84,6 +100,12 @@ const ArtistDashboard = () => {
       <div className={styles.statsGrid}>
         <StatCard icon="🎵" value={musics.length} label="Total Tracks" />
         <StatCard icon="📋" value={playlists.length} label="Playlists" />
+        <StatCard
+          icon="👥"
+          value={followers.length}
+          label="Followers"
+          onClick={() => setActiveTab('followers')}
+        />
       </div>
 
       {/* Error Message */}
@@ -102,8 +124,15 @@ const ArtistDashboard = () => {
             label: 'My Playlists',
             content: <PlaylistTab playlists={playlists} musics={musics} />, 
           },
+          {
+            id: 'followers',
+            label: 'Followers',
+            content: <FollowersTab followers={followers} />,
+          },
         ]}
         defaultTab="musics"
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
     </div>
   );

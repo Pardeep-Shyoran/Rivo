@@ -17,6 +17,11 @@ const followSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    listenerName: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

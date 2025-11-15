@@ -1,14 +1,68 @@
 import mongoose from "mongoose";
 import followModel from "../models/follow.model.js";
 import musicModel from "../models/music.model.js";
+import userModel from "../models/user.model.js";
 import { getPresignedUrl } from "../services/storage.service.js";
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
+
+const formatFullName = (fullName) => {
+  if (!fullName || typeof fullName !== "object") {
+    return null;
+  }
+
+  const parts = [fullName.firstName, fullName.lastName]
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean);
+
+  return parts.length ? parts.join(" ") : null;
+};
+
+const fetchDisplayNamesForListeners = async (listenerIds) => {
+  if (!Array.isArray(listenerIds) || !listenerIds.length) {
+    return new Map();
+  }
+
+  const uniqueValidIds = Array.from(
+    new Set(
+      listenerIds
+        .filter((id) => id && isValidObjectId(id))
+        .map((id) => id.toString())
+    )
+  );
+
+  if (!uniqueValidIds.length) {
+    return new Map();
+  }
+
+  try {
+    const objectIds = uniqueValidIds.map((id) => new mongoose.Types.ObjectId(id));
+    const users = await userModel
+      .find({ _id: { $in: objectIds } })
+      .select({ fullName: 1 })
+      .lean();
+
+    const nameMap = new Map();
+
+    users.forEach((user) => {
+      const displayName = formatFullName(user?.fullName);
+      if (displayName) {
+        nameMap.set(user._id.toString(), displayName);
+      }
+    });
+
+    return nameMap;
+  } catch (err) {
+    console.error("Failed to fetch listener display names:", err);
+    return new Map();
+  }
+};
 
 export async function followArtist(req, res) {
   const listenerId = req.user?.id;
   const { artistId } = req.params;
   const { artistName: bodyArtistName } = req.body || {};
+  let listenerFullName = formatFullName(req.user?.fullName);
 
   if (!listenerId) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -34,6 +88,24 @@ export async function followArtist(req, res) {
       artistName = latestMusic?.artist || null;
     }
 
+    if (!listenerFullName) {
+      try {
+        const listenerRecord = await userModel
+          .findById(listenerId)
+          .select({ fullName: 1 })
+          .lean();
+        listenerFullName = formatFullName(listenerRecord?.fullName);
+      } catch (err) {
+        console.warn("Failed to load listener name for follow record", listenerId, err?.message);
+      }
+    }
+
+    const updateFields = { artistName };
+
+    if (listenerFullName) {
+      updateFields.listenerName = listenerFullName;
+    }
+
     await followModel.updateOne(
       { listenerId, artistId },
       {
@@ -41,9 +113,7 @@ export async function followArtist(req, res) {
           listenerId,
           artistId,
         },
-        $set: {
-          artistName,
-        },
+        $set: updateFields,
       },
       { upsert: true }
     );
@@ -131,6 +201,79 @@ export async function getFollowersCount(req, res) {
       .status(500)
       .json({
         message: "Failed to fetch followers count",
+        error: err.message,
+      });
+  }
+}
+
+export async function getArtistFollowers(req, res) {
+  const artistId = req.user?.id;
+
+  if (!artistId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (!isValidObjectId(artistId)) {
+    return res.status(400).json({ message: "Invalid artist id" });
+  }
+
+  try {
+    const followers = await followModel
+      .find({ artistId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const missingNameIds = followers
+      .filter((follower) => !follower.listenerName && follower.listenerId)
+      .map((follower) => follower.listenerId.toString());
+
+    const fallbackNameMap = await fetchDisplayNamesForListeners(missingNameIds);
+
+    const bulkNameUpdates = [];
+
+    const formatted = followers.map((follower) => {
+      const listenerIdString = follower.listenerId?.toString() || null;
+      let listenerName = follower.listenerName?.trim() || null;
+
+      if (!listenerName && listenerIdString) {
+        const fallbackName = fallbackNameMap.get(listenerIdString) || null;
+        if (fallbackName) {
+          listenerName = fallbackName;
+          bulkNameUpdates.push({
+            updateOne: {
+              filter: { _id: follower._id },
+              update: { $set: { listenerName: fallbackName } },
+            },
+          });
+        }
+      }
+
+      return {
+        id: follower._id?.toString() || null,
+        listenerId: listenerIdString,
+        listenerName,
+        followedAt: follower.createdAt || null,
+      };
+    });
+
+    if (bulkNameUpdates.length) {
+      followModel
+        .bulkWrite(bulkNameUpdates, { ordered: false })
+        .catch((err) => {
+          console.warn("Failed to backfill listener names:", err?.message);
+        });
+    }
+
+    return res.status(200).json({
+      count: formatted.length,
+      followers: formatted,
+    });
+  } catch (err) {
+    console.error("Error fetching artist followers:", err);
+    return res
+      .status(500)
+      .json({
+        message: "Failed to fetch artist followers",
         error: err.message,
       });
   }

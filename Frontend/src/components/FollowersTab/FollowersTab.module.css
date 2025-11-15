@@ -1,0 +1,68 @@
+.followersList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.followerCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.followerCard:hover {
+  transform: translateY(-3px);
+  background-color: var(--hover-background);
+  border-color: var(--border-hover-color, var(--primary-color));
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.25), rgba(59, 130, 246, 0.25));
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.followerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.followerName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.followerMeta {
+  font-size: 0.9rem;
+  color: var(--text-color5);
+}
+
+@media (max-width: 600px) {
+  .followerCard {
+    padding: 0.85rem 1rem;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .followerName {
+    font-size: 1rem;
+  }
+}

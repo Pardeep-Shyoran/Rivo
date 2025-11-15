@@ -102,6 +102,12 @@ router.get(
   musicController.getArtistPlaylists
 );
 
+router.get(
+  "/artist/followers",
+  authMiddleware.authArtistMiddleware,
+  followController.getArtistFollowers
+);
+
 // Get all playlists created by the authenticated user (listener or artist)
 // GET /api/music/user/playlist
 router.get(
