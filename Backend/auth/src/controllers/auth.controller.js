@@ -3,11 +3,31 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import config from "../config/config.js";
 import { publishToQueue } from "../broker/rabbit.js";
+import dns from 'dns';
+
+// Function to check MX records
+async function validateEmailDomain(email) {
+  try {
+    const domain = email.split('@')[1];
+    if (!domain) return false;
+
+    const mxRecords = await dns.promises.resolveMx(domain);
+    return mxRecords && mxRecords.length > 0;
+  } catch (err) {
+    return false; // Domain invalid or no MX records
+  }
+}
 
 export async function register(req, res) {
   // const {email, password, fullName:{firstName, lastName}, role='listener'} = req.body;
   const { email, password, fullName = {}, role = "listener" } = req.body;
   const { firstName, lastName } = fullName;
+
+  // Validate email domain
+  const isValidDomain = await validateEmailDomain(email);
+  if (!isValidDomain) {
+    return res.status(400).json({ error: 'Email domain cannot receive mail' });
+  }
 
   const isUserAlreadyExists = await userModel.findOne({ email });
 

@@ -54,6 +54,9 @@ const FollowersTab = ({ followers = [], isLoading = false }) => {
     return <Loader message="Loading followers..." inline />;
   }
 
+  console.log(followers);
+  
+
   if (!followers.length) {
     return (
       <EmptyState
@@ -66,6 +69,7 @@ const FollowersTab = ({ followers = [], isLoading = false }) => {
 
   return (
     <div className={styles.followersList}>
+
       {followers.map((follower, index) => {
         const displayName = follower.listenerName?.trim() || 'Unknown listener';
         const joinedOn = formatDate(follower.followedAt);

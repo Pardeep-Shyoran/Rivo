@@ -98,8 +98,8 @@ const ArtistDashboard = () => {
 
       {/* Statistics Cards */}
       <div className={styles.statsGrid}>
-        <StatCard icon="🎵" value={musics.length} label="Total Tracks" />
-        <StatCard icon="📋" value={playlists.length} label="Playlists" />
+        <StatCard icon="🎵" value={musics.length} label="Total Tracks" onClick={() => setActiveTab('musics')}/>
+        <StatCard icon="📋" value={playlists.length} label="Playlists" onClick={() => setActiveTab('playlists')}/>
         <StatCard
           icon="👥"
           value={followers.length}
