@@ -1,10 +1,10 @@
 // email.js
 import { google } from "googleapis";
-import MailComposer from "nodemailer/lib/mail-composer/index.js"; // builds RFC-2822 message
-import config from "../config/config.js"; // ensure this loads env vars securely
+import MailComposer from "nodemailer/lib/mail-composer/index.js"; 
+import config from "../config/config.js"; 
 
 /* ===========================
-   1) Templates (same as yours)
+   1) Templates
    =========================== */
 export const templates = {
   profileUpdated: ({ changed, timestamp, ip, userAgent }) => {
@@ -19,10 +19,8 @@ export const templates = {
         <strong>IP:</strong> ${ip || "unknown"}<br/>
         <strong>Device:</strong> ${userAgent || "unknown"}</p>
         <p>If this wasn’t you, please reset your password immediately and contact support.</p>
-        <hr />
-        <p style="font-size:12px;color:#666;">You’re receiving this email for account safety.</p>
       `,
-      text: `Profile updated. Fields: ${changed.join(", ")}. Time: ${timestamp}. IP: ${ip}. Device: ${userAgent}.`,
+      text: `Profile updated. Fields: ${changed.join(", ")}. Time: ${timestamp}.`,
     };
   },
   passwordChanged: ({ timestamp, ip, userAgent }) => ({
@@ -33,9 +31,8 @@ export const templates = {
       <p><strong>Time:</strong> ${timestamp}<br/>
       <strong>IP:</strong> ${ip || "unknown"}<br/>
       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-      <p>If you did not perform this action, reset your password NOW.</p>
     `,
-    text: `Password changed at ${timestamp}. IP: ${ip}. Device: ${userAgent}.`,
+    text: `Password changed at ${timestamp}. IP: ${ip}.`,
   }),
   profilePhotoUpdated: ({ timestamp, ip, userAgent }) => ({
     subject: "Security Alert: Profile Photo Updated",
@@ -67,9 +64,8 @@ export const templates = {
       <p><strong>Time:</strong> ${timestamp || new Date().toLocaleString()}<br/>
       <strong>IP Address:</strong> ${ip || "unknown"}<br/>
       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-      <p>If this wasn't you: Please secure your account immediately.</p>
     `,
-    text: `New login detected for ${fullName?.firstName || ""} at ${timestamp}. IP: ${ip}.`,
+    text: `New login detected for ${fullName?.firstName || ""} at ${timestamp}.`,
   }),
 };
 
@@ -77,7 +73,6 @@ export const templates = {
    2) Helpers
    =========================== */
 
-// Minimal base64url encoder required by Gmail API (RFC 4648 §5)
 function base64UrlEncode(buffer) {
   return buffer
     .toString("base64")
@@ -86,15 +81,13 @@ function base64UrlEncode(buffer) {
     .replace(/=+$/, "");
 }
 
-// Example hook: persist new refresh token securely (implement for your infra)
+// Placeholder: Implement DB storage here
 async function persistRefreshToken(newRefreshToken) {
-  // TODO: replace with secure storage (DB, secret manager)
-  // e.g. await secretsClient.set("GMAIL_REFRESH_TOKEN", newRefreshToken);
-  console.log("[email] persistRefreshToken called — implement secure persistence.");
+  console.log("[email] persistRefreshToken called — TODO: Save this token to DB securely.");
 }
 
 /* ===========================
-   3) Gmail client factory (handles token rotation)
+   3) Gmail client factory
    =========================== */
 
 function getGmailClient() {
@@ -112,10 +105,8 @@ function getGmailClient() {
 
   oauth2Client.setCredentials({ refresh_token: config.REFRESH_TOKEN });
 
-  // Listen for token refreshes. Persist rotated refresh token if Google provides one.
   oauth2Client.on("tokens", async (tokens) => {
     if (tokens.refresh_token) {
-      // save new refresh token securely
       try {
         await persistRefreshToken(tokens.refresh_token);
         console.log("[email] Persisted new refresh token");
@@ -123,17 +114,13 @@ function getGmailClient() {
         console.error("[email] Failed to persist refresh token:", err);
       }
     }
-    if (tokens.access_token) {
-      // access token available (useful for debugging / monitoring)
-      console.log("[email] OAuth access token refreshed (expiry_date):", tokens.expiry_date || "unknown");
-    }
   });
 
   return google.gmail({ version: "v1", auth: oauth2Client });
 }
 
 /* ===========================
-   4) Build RFC-2822 message using MailComposer
+   4) Build RFC-2822 message
    =========================== */
 
 function buildRawMessage({ from, to, subject, text, html, cc, bcc, attachments }) {
@@ -146,19 +133,19 @@ function buildRawMessage({ from, to, subject, text, html, cc, bcc, attachments }
       html,
       cc,
       bcc,
-      attachments, // attachments per nodemailer format if provided
+      attachments,
     };
 
     const composer = new MailComposer(mailOptions);
     composer.compile().build((err, message) => {
       if (err) return reject(err);
-      resolve(message); // Buffer (RFC-2822)
+      resolve(message); 
     });
   });
 }
 
 /* ===========================
-   5) sendEmail with retries + backoff
+   5) sendEmail (FIXED)
    =========================== */
 
 export async function sendEmail({
@@ -172,6 +159,16 @@ export async function sendEmail({
   maxRetries = 3,
   retryDelayMs = 1000,
 }) {
+  // --- FIX START: Explicit Validation ---
+  if (!to || (Array.isArray(to) && to.length === 0)) {
+    const error = new Error("[email] 'to' argument is missing or empty.");
+    console.error(error.message);
+    throw error;
+  }
+  // --- FIX END ---
+
+  console.log(`[email] Attempting to send email to: ${to}`);
+
   const gmail = getGmailClient();
   const from = `"Rivo - Play for All" <${config.EMAIL_USER}>`;
 
@@ -179,35 +176,33 @@ export async function sendEmail({
   const messageBuffer = await buildRawMessage({ from, to, subject, text, html, cc, bcc, attachments });
   const raw = base64UrlEncode(messageBuffer);
 
-  // retry loop with exponential backoff for transient errors
+  // Retry loop
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const res = await gmail.users.messages.send({
         userId: "me",
         requestBody: { raw },
       });
-      console.log(`[email] Sent messageId=${res.data.id}`);
+      console.log(`[email] Success! MessageId=${res.data.id}`);
       return res.data;
     } catch (err) {
       const isRetryable =
-        err?.code === 429 || // quota
-        (err?.code >= 500 && err?.code < 600) || // server errors
+        err?.code === 429 || 
+        (err?.code >= 500 && err?.code < 600) || 
         ["ENOTFOUND", "ETIMEDOUT", "ESOCKET", "ECONNRESET"].includes(err?.code);
 
-      console.error(`[email] Send attempt ${attempt + 1} failed:`, err?.message || err);
+      console.error(`[email] Attempt ${attempt + 1} failed: ${err?.message || err}`);
 
-      // If not retryable or out of attempts, rethrow
       if (!isRetryable || attempt === maxRetries) {
-        // optional: attach API error body for debugging
         if (err?.response?.data) {
-          console.error("[email] Gmail API response:", JSON.stringify(err.response.data));
+          // Log Google's specific error reason
+          console.error("[email] API Error Details:", JSON.stringify(err.response.data, null, 2));
         }
         throw err;
       }
 
-      // Exponential backoff
       const wait = retryDelayMs * Math.pow(2, attempt);
-      console.log(`[email] retrying in ${wait}ms...`);
+      console.log(`[email] Retrying in ${wait}ms...`);
       await new Promise((r) => setTimeout(r, wait));
     }
   }
