@@ -1,5 +1,5 @@
 import { subscribeToQueue } from './rabbit.js';
-import { sendEmail,  templates } from '../utils/email.js';
+import sendEmail, { templates } from '../utils/email.js';
 
 function startListener() {
     console.log('🎧 Starting message listeners...');
