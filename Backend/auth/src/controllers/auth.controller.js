@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import config from "../config/config.js";
 import { publishToQueue } from "../broker/rabbit.js";
 import dns from 'dns';
+// Force Node to use IPv4 instead of IPv6
+dns.setDefaultResultOrder('ipv4first');
 
 // Function to check MX records
 async function validateEmailDomain(email) {
