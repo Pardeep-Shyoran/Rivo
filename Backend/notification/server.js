@@ -2,7 +2,10 @@ import app from "./src/App.js";
 import { connect } from "./src/broker/rabbit.js";
 import startListener from "./src/broker/listener.js";
 import config from "./src/config/config.js";
+import net from "net";
 import dns from "dns";
+// Force Node to use IPv4 instead of IPv6
+dns.setDefaultResultOrder("ipv4first");
 
 console.log("🚀 Starting Notification Service...");
 console.log("📋 Environment:", process.env.NODE_ENV || "development");
@@ -17,6 +20,31 @@ app.get("/test-network", (req, res) => {
       return res.status(500).json({ error: "DNS Lookup Failed", details: err });
     }
     res.json({ status: "Success", address: address, family: "IPv" + family });
+  });
+});
+
+
+app.get('/test-port', (req, res) => {
+  const client = new net.Socket();
+  const startTime = Date.now();
+
+  // 1. Try to connect to Gmail on Port 465
+  client.connect(465, 'smtp.gmail.com', () => {
+    const timeTaken = Date.now() - startTime;
+    res.json({ status: 'Connected!', time_ms: timeTaken, message: 'Port 465 is OPEN' });
+    client.destroy();
+  });
+
+  // 2. Handle Errors
+  client.on('error', (err) => {
+    res.status(500).json({ status: 'Failed', error: err.message, code: err.code });
+  });
+
+  // 3. Handle Timeout (Force fail after 5s)
+  client.setTimeout(5000);
+  client.on('timeout', () => {
+    res.status(504).json({ status: 'Timeout', message: 'Port 465 is BLOCKED by Firewall/Google' });
+    client.destroy();
   });
 });
 
