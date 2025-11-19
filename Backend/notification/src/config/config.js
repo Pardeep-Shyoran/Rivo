@@ -11,6 +11,7 @@ const _config = {
     REFRESH_TOKEN: process.env.REFRESH_TOKEN,
     EMAIL_USER: process.env.EMAIL_USER,
     RABBITMQ_URI: process.env.RABBITMQ_URI,
+    REDIRECT_URI: process.env.REDIRECT_URI,
 }
 
 // Validate critical environment variables
