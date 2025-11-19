@@ -167,7 +167,7 @@ export default async function sendEmail(to, subject, text, html, retries = 2) {
     const preview = nodemailer.getTestMessageUrl(info);
     if (preview) console.log('[email] Preview URL:', preview);
   } catch (error) {
-    console.error('[email] ❌ Error sending email:', error.message || error);
+    console.error('[email] ❌ Error sending email:', error);
     
     // Log specific error types
     if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
