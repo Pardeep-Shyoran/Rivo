@@ -1,378 +1,250 @@
-// import nodemailer from "nodemailer";
-// import config from "../config/config.js";
-
-// // Simple templates for security notifications
-// export const templates = {
-//   profileUpdated: ({ changed, timestamp, ip, userAgent }) => {
-//     const list = changed.map((f) => `<li>${f}</li>`).join("");
-//     return {
-//       subject: "Security Alert: Your Profile Was Updated",
-//       html: `
-//         <h2>Profile Changes Detected</h2>
-//         <p>The following fields on your Rivo profile were updated:</p>
-//         <ul>${list}</ul>
-//         <p><strong>Time:</strong> ${timestamp}<br/>
-//         <strong>IP:</strong> ${ip || "unknown"}<br/>
-//         <strong>Device:</strong> ${userAgent || "unknown"}</p>
-//         <p>If this wasn’t you, please reset your password immediately and contact support.</p>
-//         <hr />
-//         <p style="font-size:12px;color:#666;">You’re receiving this email for account safety.</p>
-//       `,
-//       text: `Profile updated. Fields: ${changed.join(
-//         ", "
-//       )}. Time: ${timestamp}. IP: ${ip}. Device: ${userAgent}. If not you, reset password.`,
-//     };
-//   },
-//   passwordChanged: ({ timestamp, ip, userAgent }) => ({
-//     subject: "Security Alert: Password Changed",
-//     html: `
-//       <h2>Your Password Was Changed</h2>
-//       <p>Your Rivo account password was successfully changed.</p>
-//       <p><strong>Time:</strong> ${timestamp}<br/>
-//       <strong>IP:</strong> ${ip || "unknown"}<br/>
-//       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-//       <p>If you did not perform this action, reset your password NOW and contact support.</p>
-//       <hr />
-//       <p style="font-size:12px;color:#666;">Automated security notification from Rivo.</p>
-//     `,
-//     text: `Password changed at ${timestamp}. IP: ${ip}. Device: ${userAgent}. If not you, reset immediately.`,
-//   }),
-//   profilePhotoUpdated: ({ timestamp, ip, userAgent }) => ({
-//     subject: "Security Alert: Profile Photo Updated",
-//     html: `
-//       <h2>Your Profile Photo Was Changed</h2>
-//       <p>Your Rivo account profile picture was updated successfully.</p>
-//       <p><strong>Time:</strong> ${timestamp}<br/>
-//       <strong>IP:</strong> ${ip || "unknown"}<br/>
-//       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-//       <p>If you did not perform this action, please reset your password and contact support.</p>
-//       <hr />
-//       <p style="font-size:12px;color:#666;">Automated security notification from Rivo.</p>
-//     `,
-//     text: `Profile photo updated at ${timestamp}. IP: ${ip}. Device: ${userAgent}. If not you, reset password.`,
-//   }),
-//   profilePhotoDeleted: ({ timestamp, ip, userAgent }) => ({
-//     subject: "Security Alert: Profile Photo Removed",
-//     html: `
-//       <h2>Your Profile Photo Was Removed</h2>
-//       <p>Your Rivo account profile picture was removed.</p>
-//       <p><strong>Time:</strong> ${timestamp}<br/>
-//       <strong>IP:</strong> ${ip || "unknown"}<br/>
-//       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-//       <p>If you did not perform this action, please secure your account immediately.</p>
-//       <hr />
-//       <p style="font-size:12px;color:#666;">Automated security notification from Rivo.</p>
-//     `,
-//     text: `Profile photo removed at ${timestamp}. IP: ${ip}. Device: ${userAgent}. If not you, secure account.`,
-//   }),
-//   userLoggedIn: ({ fullName, timestamp, ip, userAgent }) => ({
-//     subject: "Security Alert: New Login Detected",
-//     html: `
-//       <h2>Welcome Back, ${fullName.firstName || ""}!</h2>
-//       <p>A new login to your Rivo account was detected.</p>
-//       <p><strong>Time:</strong> ${timestamp || new Date().toLocaleString()}<br/>
-//       <strong>IP Address:</strong> ${ip || "unknown"}<br/>
-//       <strong>Device:</strong> ${userAgent || "unknown"}</p>
-//       <p>If this was you, you can safely ignore this email.</p>
-//       <p><strong>If this wasn't you:</strong> Please secure your account immediately by changing your password and reviewing your account activity.</p>
-//       <hr />
-//       <p style="font-size:12px;color:#666;">You're receiving this email for account security. This is an automated notification from Rivo.</p>
-//     `,
-//     text: `New login detected for ${fullName.firstName || ""} ${
-//       fullName.lastName || ""
-//     } at ${timestamp || new Date().toLocaleString()}. IP: ${
-//       ip || "unknown"
-//     }. Device: ${
-//       userAgent || "unknown"
-//     }. If not you, secure your account immediately.`,
-//   }),
-// };
-
-// // Lazy singleton so startup doesn't fail if Gmail creds missing (service can still run & log)
-// let transporter;
-
-// function buildTransporter() {
-//   if (transporter) return transporter;
-
-//   const missing = [
-//     "EMAIL_USER",
-//     "CLIENT_ID",
-//     "CLIENT_SECRET",
-//     "REFRESH_TOKEN",
-//   ].filter((k) => !config[k]);
-//   if (missing.length) {
-//     console.warn(
-//       "[email] Missing env vars for Gmail OAuth2:",
-//       missing.join(", ")
-//     );
-//     console.warn("[email] Emails will NOT be sent until all are provided.");
-//     return null;
-//   }
-
-//   transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com", // Explicitly set host
-//     port: 465, // Explicitly set port to 465
-//     secure: true, // Must be true for port 465 (Force SSL)
-//     auth: {
-//       type: "OAuth2",
-//       user: config.EMAIL_USER,
-//       clientId: config.CLIENT_ID,
-//       clientSecret: config.CLIENT_SECRET,
-//       refreshToken: config.REFRESH_TOKEN,
-//     },
-//     // DEBUG SETTINGS
-//     logger: true, // Log to console
-//     debug: true, // Include SMTP traffic in logs
-//     // Keep your existing timeout/pool config
-//     connectionTimeout: 10000,
-//     greetingTimeout: 5000,
-//     socketTimeout: 15000,
-//     pool: false,
-//     maxConnections: 5,
-//     maxMessages: 100,
-//     rateDelta: 1000,
-//     rateLimit: 5,
-//   });
-
-//   // Verify with timeout
-//   const verifyPromise = transporter.verify();
-//   const timeoutPromise = new Promise((_, reject) =>
-//     setTimeout(() => reject(new Error("Verification timeout")), 10000)
-//   );
-
-//   Promise.race([verifyPromise, timeoutPromise])
-//     .then(() => {
-//       console.log(
-//         "[email] ✅ Gmail transporter verified. Ready to send emails"
-//       );
-//     })
-//     .catch((error) => {
-//       console.error(
-//         "[email] ⚠️  Transporter verification failed:",
-//         error.message
-//       );
-//       console.error("[email] Possible issues:");
-//       console.error("  - Gmail OAuth2 credentials expired or invalid");
-//       console.error("  - Gmail blocking connections from this IP");
-//       console.error("  - Network connectivity issues");
-//       console.error(
-//         "[email] Emails may fail to send. Check your Gmail OAuth2 setup."
-//       );
-//     });
-
-//   return transporter;
-// }
-
-// // Reuse the same transporter for all emails
-// let globalTransporter = null;
-
-// // Function to send email with retry logic
-// export default async function sendEmail(to, subject, text, html, retries = 2) {
-//   try {
-//     // Build transporter once and reuse
-//     if (!globalTransporter) {
-//       globalTransporter = buildTransporter();
-//     }
-
-//     const tx = globalTransporter;
-//     if (!tx) {
-//       console.error("[email] ❌ Cannot send email: transporter not configured");
-//       return;
-//     }
-
-//     console.log(`[email] 📤 Attempting to send email to: ${to}`);
-
-//     const info = await tx.sendMail({
-//       from: `"Rivo" <${config.EMAIL_USER}>`,
-//       to,
-//       subject,
-//       text,
-//       html,
-//     });
-
-//     console.log("[email] ✅ Email sent successfully:", info.messageId);
-//     const preview = nodemailer.getTestMessageUrl(info);
-//     if (preview) console.log("[email] Preview URL:", preview);
-//   } catch (error) {
-//     console.error("[email] ❌ Error sending email:", error);
-
-//     // Log specific error types
-//     if (error.code === "ETIMEDOUT" || error.code === "ESOCKET") {
-//       console.error(
-//         "[email] 🔌 Connection timeout - Gmail may be blocking this IP"
-//       );
-//       console.error("[email] 💡 Solutions:");
-//       console.error("  1. Verify Gmail OAuth2 credentials are correct");
-//       console.error("  2. Check if refresh token is expired");
-//       console.error(
-//         "  3. Consider using SendGrid, AWS SES, or Mailgun instead"
-//       );
-//     } else if (error.code === "EAUTH") {
-//       console.error(
-//         "[email] 🔐 Authentication failed - Check OAuth2 credentials"
-//       );
-//     }
-
-//     // Retry logic
-//     if (
-//       retries > 0 &&
-//       (error.code === "ETIMEDOUT" || error.code === "ESOCKET")
-//     ) {
-//       console.log(`[email] 🔄 Retrying... (${retries} attempts left)`);
-//       await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-//       return sendEmail(to, subject, text, html, retries - 1);
-//     }
-//   }
-// }
-
 import { google } from "googleapis";
-import MailComposer from "nodemailer/lib/mail-composer/index.js"; // function to build the email
+import MailComposer from "nodemailer/lib/mail-composer/index.js";
+import { UAParser } from "ua-parser-js"; // Import the parser
 import config from "../config/config.js";
 
 // ==========================================
-// 1. TEMPLATES (Kept exactly the same)
+// 1. UTILITIES (Time & Device Parsing)
+// ==========================================
+
+/**
+ * Returns the current time in Indian Standard Time (IST)
+ * Format: "19 Nov, 2025 at 11:30 PM"
+ */
+const getISTTime = () => {
+  return new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+/**
+ * Parses the raw User-Agent string into readable Device/OS/Browser
+ */
+const getDeviceDetails = (userAgentString) => {
+  if (!userAgentString) return "Unknown Device";
+  
+  const parser = new UAParser(userAgentString);
+  const result = parser.getResult();
+  
+  const browser = result.browser.name ? `${result.browser.name}` : "";
+  const os = result.os.name ? `${result.os.name} ${result.os.version || ""}` : "";
+  const device = result.device.model ? `${result.device.vendor} ${result.device.model}` : "";
+
+  // Construct a readable string (e.g., "Chrome on Windows 10" or "Safari on iPhone")
+  const parts = [browser, os, device].filter(Boolean);
+  return parts.length > 0 ? parts.join(" on ") : "Unknown Device";
+};
+
+// ==========================================
+// 2. TEMPLATES
 // ==========================================
 export const templates = {
-  profileUpdated: ({ changed, timestamp, ip, userAgent }) => {
-    const list = changed.map((f) => `<li>${f}</li>`).join("");
+  profileUpdated: ({ changed, ip, userAgent }) => {
+    const list = changed.map((f) => `<li style="margin-bottom: 5px;">${f}</li>`).join("");
+    const deviceName = getDeviceDetails(userAgent);
+    const timeIST = getISTTime();
+
     return {
       subject: "Security Alert: Your Profile Was Updated",
       html: `
-        <h2>Profile Changes Detected</h2>
-        <p>The following fields on your Rivo profile were updated:</p>
-        <ul>${list}</ul>
-        <p><strong>Time:</strong> ${timestamp}<br/>
-        <strong>IP:</strong> ${ip || "unknown"}<br/>
-        <strong>Device:</strong> ${userAgent || "unknown"}</p>
-        <p>If this wasn’t you, please reset your password immediately and contact support.</p>
-        <hr />
-        <p style="font-size:12px;color:#666;">You’re receiving this email for account safety.</p>
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #2c3e50;">Profile Changes Detected</h2>
+          <p>The following fields on your Rivo profile were updated:</p>
+          <ul>${list}</ul>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
+            <p style="margin: 5px 0;"><strong>📅 Time:</strong> ${timeIST} (IST)</p>
+            <p style="margin: 5px 0;"><strong>🌐 IP Address:</strong> ${ip || "Unknown"}</p>
+            <p style="margin: 5px 0;"><strong>💻 Device:</strong> ${deviceName}</p>
+          </div>
+
+          <p>If this wasn’t you, please reset your password immediately and contact support.</p>
+          <hr style="border: 0; border-top: 1px solid #eee;" />
+          <p style="font-size:12px;color:#666;">You’re receiving this email for account safety.</p>
+        </div>
       `,
-      text: `Profile updated. Fields: ${changed.join(
-        ", "
-      )}. Time: ${timestamp}. IP: ${ip}. Device: ${userAgent}.`,
+      text: `Profile updated. Fields: ${changed.join(", ")}. Time: ${timeIST}. IP: ${ip}. Device: ${deviceName}.`,
     };
   },
-  passwordChanged: ({ timestamp, ip, userAgent }) => ({
-    subject: "Security Alert: Password Changed",
-    html: `
-      <h2>Your Password Was Changed</h2>
-      <p>Your Rivo account password was successfully changed.</p>
-      <p><strong>Time:</strong> ${timestamp}<br/>
-      <strong>IP:</strong> ${ip || "unknown"}<br/>
-      <strong>Device:</strong> ${userAgent || "unknown"}</p>
-      <p>If you did not perform this action, reset your password NOW.</p>
-    `,
-    text: `Password changed at ${timestamp}. IP: ${ip}. Device: ${userAgent}.`,
-  }),
-  profilePhotoUpdated: ({ timestamp, ip, userAgent }) => ({
-    subject: "Security Alert: Profile Photo Updated",
-    html: `
-      <h2>Your Profile Photo Was Changed</h2>
-      <p>Your Rivo account profile picture was updated successfully.</p>
-      <p><strong>Time:</strong> ${timestamp}<br/>
-      <strong>IP:</strong> ${ip || "unknown"}<br/>
-      <strong>Device:</strong> ${userAgent || "unknown"}</p>
-    `,
-    text: `Profile photo updated at ${timestamp}.`,
-  }),
-  profilePhotoDeleted: ({ timestamp, ip, userAgent }) => ({
-    subject: "Security Alert: Profile Photo Removed",
-    html: `
-      <h2>Your Profile Photo Was Removed</h2>
-      <p>Your Rivo account profile picture was removed.</p>
-      <p><strong>Time:</strong> ${timestamp}<br/>
-      <strong>IP:</strong> ${ip || "unknown"}<br/>
-      <strong>Device:</strong> ${userAgent || "unknown"}</p>
-    `,
-    text: `Profile photo removed at ${timestamp}.`,
-  }),
-  userLoggedIn: ({ fullName, timestamp, ip, userAgent }) => ({
-    subject: "Security Alert: New Login Detected",
-    html: `
-      <h2>Welcome Back, ${fullName.firstName || ""}!</h2>
-      <p>A new login to your Rivo account was detected.</p>
-      <p><strong>Time:</strong> ${timestamp || new Date().toLocaleString()}<br/>
-      <strong>IP Address:</strong> ${ip || "unknown"}<br/>
-      <strong>Device:</strong> ${userAgent || "unknown"}</p>
-      <p>If this wasn't you: Please secure your account immediately.</p>
-    `,
-    text: `New login detected for ${
-      fullName.firstName || ""
-    } at ${timestamp}. IP: ${ip}.`,
-  }),
+
+  passwordChanged: ({ ip, userAgent }) => {
+    const deviceName = getDeviceDetails(userAgent);
+    const timeIST = getISTTime();
+    
+    return {
+      subject: "Security Alert: Password Changed",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #d9534f;">Your Password Was Changed</h2>
+          <p>Your Rivo account password was successfully changed.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #d9534f;">
+            <p style="margin: 5px 0;"><strong>📅 Time:</strong> ${timeIST} (IST)</p>
+            <p style="margin: 5px 0;"><strong>🌐 IP Address:</strong> ${ip || "Unknown"}</p>
+            <p style="margin: 5px 0;"><strong>💻 Device:</strong> ${deviceName}</p>
+          </div>
+
+          <p>If you did not perform this action, <strong>reset your password NOW</strong>.</p>
+        </div>
+      `,
+      text: `Password changed at ${timeIST}. IP: ${ip}. Device: ${deviceName}.`,
+    };
+  },
+
+  profilePhotoUpdated: ({ ip, userAgent }) => {
+    const deviceName = getDeviceDetails(userAgent);
+    const timeIST = getISTTime();
+
+    return {
+      subject: "Security Alert: Profile Photo Updated",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2>Your Profile Photo Was Changed</h2>
+          <p>Your Rivo account profile picture was updated successfully.</p>
+           <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+            <p style="margin: 5px 0;"><strong>Time:</strong> ${timeIST}</p>
+            <p style="margin: 5px 0;"><strong>Device:</strong> ${deviceName}</p>
+             <p style="margin: 5px 0;"><strong>IP:</strong> ${ip || "Unknown"}</p>
+          </div>
+        </div>
+      `,
+      text: `Profile photo updated at ${timeIST}. Device: ${deviceName}`,
+    };
+  },
+
+  profilePhotoDeleted: ({ ip, userAgent }) => {
+    const deviceName = getDeviceDetails(userAgent);
+    const timeIST = getISTTime();
+
+    return {
+      subject: "Security Alert: Profile Photo Removed",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2>Your Profile Photo Was Removed</h2>
+          <p>Your Rivo account profile picture was removed.</p>
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+            <p style="margin: 5px 0;"><strong>Time:</strong> ${timeIST}</p>
+            <p style="margin: 5px 0;"><strong>Device:</strong> ${deviceName}</p>
+             <p style="margin: 5px 0;"><strong>IP:</strong> ${ip || "Unknown"}</p>
+          </div>
+        </div>
+      `,
+      text: `Profile photo removed at ${timeIST}.`,
+    };
+  },
+
+  userLoggedIn: ({ fullName, ip, userAgent }) => {
+    const deviceName = getDeviceDetails(userAgent);
+    const timeIST = getISTTime();
+
+    return {
+      subject: "Security Alert: New Login Detected",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #28a745;">Welcome Back, ${fullName.firstName || "User"}!</h2>
+          <p>A new login to your Rivo account was detected.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+            <p style="margin: 5px 0;"><strong>📅 Time:</strong> ${timeIST} (IST)</p>
+            <p style="margin: 5px 0;"><strong>🌐 IP Address:</strong> ${ip || "Unknown"}</p>
+            <p style="margin: 5px 0;"><strong>💻 Device:</strong> ${deviceName}</p>
+          </div>
+
+          <p>If this wasn't you: <strong>Please secure your account immediately.</strong></p>
+        </div>
+      `,
+      text: `New login detected for ${fullName.firstName || ""} at ${timeIST}. IP: ${ip}. Device: ${deviceName}`,
+    };
+  },
 };
+
+// ==========================================
+// 3. GMAIL CLIENT SETUP (Singleton)
+// ==========================================
+
+let oauth2ClientInstance = null;
 
 const getGmailClient = () => {
-  const required = [
-    "CLIENT_ID",
-    "CLIENT_SECRET",
-    "REFRESH_TOKEN",
-    "EMAIL_USER",
-  ];
+  const required = ["CLIENT_ID", "CLIENT_SECRET", "REFRESH_TOKEN", "EMAIL_USER"];
   const missing = required.filter((k) => !config[k]);
+  
   if (missing.length) {
-    throw new Error(`Missing config: ${missing.join(", ")}`);
+    throw new Error(`[Email Service] Missing config: ${missing.join(", ")}`);
   }
 
-  const oauth2Client = new google.auth.OAuth2(
-    config.CLIENT_ID,
-    config.CLIENT_SECRET,
-    config.REDIRECT_URI // make this configurable
-  );
+  // Initialize client only once
+  if (!oauth2ClientInstance) {
+    oauth2ClientInstance = new google.auth.OAuth2(
+      config.CLIENT_ID,
+      config.CLIENT_SECRET,
+      config.REDIRECT_URI || "https://developers.google.com/oauthplayground"
+    );
 
-  oauth2Client.setCredentials({
-    refresh_token: config.REFRESH_TOKEN,
-  });
+    oauth2ClientInstance.setCredentials({
+      refresh_token: config.REFRESH_TOKEN,
+    });
 
-  // Optionally, set up an event handler if token is refreshed
-  oauth2Client.on("tokens", (tokens) => {
-    if (tokens.refresh_token) {
-      // You could save the new refresh token here
-      console.log("New refresh token:", tokens.refresh_token);
-    }
-    console.log("New access token:", tokens.access_token);
-  });
+    // Handle token refresh events internally
+    oauth2ClientInstance.on("tokens", (tokens) => {
+      if (tokens.refresh_token) {
+        console.log("[Email Service] New refresh token received (Save this to DB if needed):", tokens.refresh_token);
+      }
+      // console.log("New access token received"); 
+    });
+  }
 
-  return google.gmail({ version: "v1", auth: oauth2Client });
+  return google.gmail({ version: "v1", auth: oauth2ClientInstance });
 };
 
+// ==========================================
+// 4. SEND EMAIL FUNCTION
+// ==========================================
+
 export default async function sendEmail(to, subject, text, html) {
-  const gmail = getGmailClient();
-  const mailOptions = {
-    from: `"Rivo " <${config.EMAIL_USER}>`,
-    to,
-    subject,
-    text,
-    html,
-    // You could also add cc, bcc, attachments, headers, etc.
-  };
-
-  const composer = new MailComposer(mailOptions);
-  const message = await new Promise((resolve, reject) => {
-    composer.compile().build((err, msg) => {
-      if (err) reject(err);
-      else resolve(msg);
-    });
-  });
-
-  const raw = Buffer.from(message)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
   try {
+    const gmail = getGmailClient();
+    
+    const mailOptions = {
+      from: `"Rivo App" <${config.EMAIL_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+    };
+
+    const composer = new MailComposer(mailOptions);
+    const message = await new Promise((resolve, reject) => {
+      composer.compile().build((err, msg) => {
+        if (err) reject(err);
+        else resolve(msg);
+      });
+    });
+
+    // Encode the message for Gmail API (RFC 4648 base64url)
+    const raw = Buffer.from(message)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
     const res = await gmail.users.messages.send({
       userId: "me",
       requestBody: { raw },
     });
-    console.log(`[email] Sent! ID: ${res.data.id}`);
+
+    console.log(`[Email Service] Sent '${subject}' to ${to}. ID: ${res.data.id}`);
     return res.data;
+
   } catch (err) {
-    console.error("[email] Failed to send:", err);
+    console.error("[Email Service] Failed to send email:", err.message);
     if (err.response) {
-      console.error("[email] Gmail API error:", err.response.data);
+      console.error("[Email Service] Gmail API error details:", err.response.data);
     }
     throw err;
   }
