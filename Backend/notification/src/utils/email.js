@@ -120,11 +120,14 @@ function buildTransporter() {
       clientSecret: config.CLIENT_SECRET,
       refreshToken: config.REFRESH_TOKEN,
     },
+    // DEBUG SETTINGS
+    logger: true, // Log to console
+    debug: true, // Include SMTP traffic in logs
     // Keep your existing timeout/pool config
     connectionTimeout: 10000,
     greetingTimeout: 5000,
     socketTimeout: 15000,
-    pool: true,
+    pool: false,
     maxConnections: 5,
     maxMessages: 100,
     rateDelta: 1000,
