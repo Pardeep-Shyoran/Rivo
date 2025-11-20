@@ -134,7 +134,7 @@ export const templates = {
     return {
       subject: "Security Alert: New Login Detected",
       html: `
-        <h2>Welcome Back, ${fullName.firstName || ""}!</h2>
+        <h2>Welcome Back, ${fullName.firstName || ""} ${fullName.lastName || ""}!</h2>
         <p>A new login to your Rivo account was detected.</p>
         <div style="background:#f4f4f4; padding:10px; border-radius:5px;">
             <p><strong>Time (IST):</strong> ${time}</p>
@@ -143,7 +143,7 @@ export const templates = {
         </div>
         <p>If this wasn't you: Please secure your account immediately.</p>
       `,
-      text: `New login detected for ${fullName.firstName || ""} at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `New login detected for ${fullName.firstName || ""} ${fullName.lastName || ""} at ${time}. IP: ${ip}. Device: ${deviceName}.`,
     };
   },
 };
