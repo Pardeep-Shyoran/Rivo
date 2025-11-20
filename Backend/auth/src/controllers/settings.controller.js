@@ -2,6 +2,7 @@ import userModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { uploadToImageKit, deleteFromImageKit } from "../services/imagekit.service.js";
 import { publishToQueue } from "../broker/rabbit.js"; // re-added for security notifications
+import { wakeUpNotificationService } from "../utils/wakeUpService.js";
 
 // Get user settings/profile
 export async function getUserSettings(req, res) {
@@ -35,6 +36,9 @@ export async function getUserSettings(req, res) {
 
 // Update profile information
 export async function updateProfile(req, res) {
+
+  wakeUpNotificationService();
+
   try {
     const { firstName, lastName, bio } = req.body;
     const userId = req.user.id;
@@ -96,6 +100,9 @@ export async function updateProfile(req, res) {
 
 // Update password
 export async function updatePassword(req, res) {
+
+  wakeUpNotificationService();
+
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
@@ -251,6 +258,9 @@ export async function updatePreferences(req, res) {
 
 // Delete user account
 export async function deleteAccount(req, res) {
+
+  wakeUpNotificationService();
+
   try {
     const { password } = req.body;
     const userId = req.user.id;
@@ -297,6 +307,9 @@ export async function deleteAccount(req, res) {
 
 // Upload profile picture
 export async function uploadProfilePicture(req, res) {
+
+  wakeUpNotificationService();
+
   try {
     const userId = req.user.id;
 
@@ -373,6 +386,9 @@ export async function uploadProfilePicture(req, res) {
 
 // Delete profile picture
 export async function deleteProfilePicture(req, res) {
+
+  wakeUpNotificationService();
+
   try {
     const userId = req.user.id;
 

@@ -3,14 +3,15 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import config from "../config/config.js";
 import { publishToQueue } from "../broker/rabbit.js";
-import dns from 'dns';
+import { wakeUpNotificationService } from "../utils/wakeUpService.js";
+import dns from "dns";
 // Force Node to use IPv4 instead of IPv6
-dns.setDefaultResultOrder('ipv4first');
+dns.setDefaultResultOrder("ipv4first");
 
 // Function to check MX records
 async function validateEmailDomain(email) {
   try {
-    const domain = email.split('@')[1];
+    const domain = email.split("@")[1];
     if (!domain) return false;
 
     const mxRecords = await dns.promises.resolveMx(domain);
@@ -21,6 +22,7 @@ async function validateEmailDomain(email) {
 }
 
 export async function register(req, res) {
+  wakeUpNotificationService();
   // const {email, password, fullName:{firstName, lastName}, role='listener'} = req.body;
   const { email, password, fullName = {}, role = "listener" } = req.body;
   const { firstName, lastName } = fullName;
@@ -28,7 +30,7 @@ export async function register(req, res) {
   // Validate email domain
   const isValidDomain = await validateEmailDomain(email);
   if (!isValidDomain) {
-    return res.status(400).json({ error: 'Email domain cannot receive mail' });
+    return res.status(400).json({ error: "Email domain cannot receive mail" });
   }
 
   const isUserAlreadyExists = await userModel.findOne({ email });
@@ -68,10 +70,10 @@ export async function register(req, res) {
 
   const cookieOptions = {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
-    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+    ...(config.NODE_ENV === "production" && config.COOKIE_DOMAIN
       ? { domain: config.COOKIE_DOMAIN }
       : {}),
   };
@@ -91,6 +93,8 @@ export async function register(req, res) {
 }
 
 export async function login(req, res) {
+  wakeUpNotificationService();
+
   const { email, password } = req.body;
 
   const user = await userModel.findOne({ email });
@@ -128,10 +132,10 @@ export async function login(req, res) {
 
   const cookieOptions = {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
-    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+    ...(config.NODE_ENV === "production" && config.COOKIE_DOMAIN
       ? { domain: config.COOKIE_DOMAIN }
       : {}),
   };
@@ -151,6 +155,9 @@ export async function login(req, res) {
 }
 
 export async function googleAuthCallback(req, res) {
+
+  wakeUpNotificationService();
+
   const user = req.user;
   console.log(user);
 
@@ -170,18 +177,18 @@ export async function googleAuthCallback(req, res) {
     );
 
     await publishToQueue("user_logged_in", {
-    id: user._id,
-    email: user.email,
-    fullName: user.fullName,
-    role: user.role,
-  });
+      id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    });
 
     const cookieOptions = {
       httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: config.NODE_ENV === "production",
+      sameSite: config.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
-      ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+      ...(config.NODE_ENV === "production" && config.COOKIE_DOMAIN
         ? { domain: config.COOKIE_DOMAIN }
         : {}),
     };
@@ -220,10 +227,10 @@ export async function googleAuthCallback(req, res) {
 
   const cookieOptions = {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
-    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+    ...(config.NODE_ENV === "production" && config.COOKIE_DOMAIN
       ? { domain: config.COOKIE_DOMAIN }
       : {}),
   };
@@ -260,13 +267,13 @@ export async function getCurrentUser(req, res) {
 export async function logout(req, res) {
   const cookieOptions = {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-    ...(config.NODE_ENV === 'production' && config.COOKIE_DOMAIN
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+    ...(config.NODE_ENV === "production" && config.COOKIE_DOMAIN
       ? { domain: config.COOKIE_DOMAIN }
       : {}),
   };
-  
+
   res.clearCookie("token", cookieOptions);
   res.status(200).json({ message: "Logged out successfully" });
 }
@@ -291,7 +298,9 @@ export async function getPublicArtistProfile(req, res) {
     const { artistId } = req.params;
 
     // Find artist user by ID
-    const artist = await userModel.findById(artistId).select("-password -__v -notifications -privacy -preferences");
+    const artist = await userModel
+      .findById(artistId)
+      .select("-password -__v -notifications -privacy -preferences");
 
     if (!artist) {
       return res.status(404).json({ message: "Artist not found" });
@@ -317,9 +326,9 @@ export async function getPublicArtistProfile(req, res) {
     });
   } catch (error) {
     console.error("Error fetching artist profile:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error fetching artist profile",
-      error: error.message 
+      error: error.message,
     });
   }
 }
@@ -333,14 +342,14 @@ export async function getPublicArtistProfileByName(req, res) {
     // Search for artist by name (case-insensitive)
     // Note: This searches for exact full name match
     const nameParts = decodedName.trim().split(/\s+/);
-    
+
     let query = { role: "artist" };
-    
+
     if (nameParts.length === 1) {
       // Single name - could be first or last name
       query.$or = [
         { "fullName.firstName": new RegExp(`^${nameParts[0]}$`, "i") },
-        { "fullName.lastName": new RegExp(`^${nameParts[0]}$`, "i") }
+        { "fullName.lastName": new RegExp(`^${nameParts[0]}$`, "i") },
       ];
     } else {
       // Multiple parts - assume first name(s) and last name
@@ -350,7 +359,9 @@ export async function getPublicArtistProfileByName(req, res) {
       query["fullName.lastName"] = new RegExp(`^${lastName}$`, "i");
     }
 
-    const artist = await userModel.findOne(query).select("-password -__v -notifications -privacy -preferences");
+    const artist = await userModel
+      .findOne(query)
+      .select("-password -__v -notifications -privacy -preferences");
 
     if (!artist) {
       return res.status(404).json({ message: "Artist not found" });
@@ -371,9 +382,9 @@ export async function getPublicArtistProfileByName(req, res) {
     });
   } catch (error) {
     console.error("Error fetching artist profile by name:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error fetching artist profile",
-      error: error.message 
+      error: error.message,
     });
   }
 }
