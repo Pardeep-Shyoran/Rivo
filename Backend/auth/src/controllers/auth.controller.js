@@ -66,6 +66,9 @@ export async function register(req, res) {
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    timestamp: new Date().toISOString(),
+    ip: (req.headers['x-forwarded-for']?.split(',')[0].trim()) || req.ip,
+    userAgent: req.headers['user-agent'] || 'unknown'
   });
 
   const cookieOptions = {
@@ -128,6 +131,9 @@ export async function login(req, res) {
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    timestamp: new Date().toISOString(),
+    ip: (req.headers['x-forwarded-for']?.split(',')[0].trim()) || req.ip,
+    userAgent: req.headers['user-agent'] || 'unknown'
   });
 
   const cookieOptions = {
@@ -180,6 +186,9 @@ export async function googleAuthCallback(req, res) {
       email: isUserAlreadyExists.email, // always safe from DB
       fullName: isUserAlreadyExists.fullName,
       role: isUserAlreadyExists.role,
+      timestamp: new Date().toISOString(),
+      ip: (req.headers['x-forwarded-for']?.split(',')[0].trim()) || req.ip,
+      userAgent: req.headers['user-agent'] || 'unknown'
     });
 
     const cookieOptions = {
@@ -212,6 +221,9 @@ export async function googleAuthCallback(req, res) {
     email: newUser.email,
     fullName: newUser.fullName,
     role: newUser.role,
+    timestamp: new Date().toISOString(),
+    ip: (req.headers['x-forwarded-for']?.split(',')[0].trim()) || req.ip,
+    userAgent: req.headers['user-agent'] || 'unknown'
   });
 
   const token = jwt.sign(

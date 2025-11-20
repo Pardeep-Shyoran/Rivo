@@ -131,15 +131,16 @@ export const emailTemplates = {
   },
 
   // 2. User Login Notification
-  userLoggedIn: ({ fullName, ip, userAgent }) => {
+  userLoggedIn: ({ fullName, ip, ipAddress, userAgent }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">New Login Detected</h2>
         <p style="margin:0 0 15px 0;">We detected a new login to your Rivo account. Welcome back!</p>
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If this wasn't you, please secure your account immediately by changing your password.")}
         <p style="margin:20px 0 0 0; color:#4a5568;">
             We're always working to keep your account secure. If you have any concerns, please don't hesitate to contact us.
@@ -149,12 +150,12 @@ export const emailTemplates = {
     return {
       subject: "Security Alert: New Login Detected",
       html: emailLayout(content, userName),
-      text: `New login detected for ${userName} at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `New login detected for ${userName} at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 3. Profile Updated with Security Details
-  profileUpdated: ({ changed, ip, userAgent, fullName }) => {
+  profileUpdated: ({ changed, ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
@@ -163,6 +164,7 @@ export const emailTemplates = {
       `<li style="padding:5px 0; color:#4a5568;">${field}</li>`
     ).join("");
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Profile Changes Detected</h2>
         <p style="margin:0 0 15px 0;">The following fields on your Rivo profile were successfully updated:</p>
@@ -173,7 +175,7 @@ export const emailTemplates = {
             </ul>
         </div>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If you didn't make these changes, please secure your account immediately by changing your password and contacting our support team.")}
         
         <p style="margin:20px 0 0 0; color:#4a5568;">
@@ -184,20 +186,21 @@ export const emailTemplates = {
     return {
       subject: "Security Alert: Your Profile Was Updated",
       html: emailLayout(content, userName),
-      text: `Profile updated. Changes: ${changed.join(", ")}. Time: ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Profile updated. Changes: ${changed.join(", ")}. Time: ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 4. Password Changed
-  passwordChanged: ({ ip, userAgent, fullName }) => {
+  passwordChanged: ({ ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Password Changed Successfully</h2>
         <p style="margin:0 0 15px 0;">Your Rivo account password was successfully changed. This is a security notification to confirm the update.</p>
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If you didn't change your password, please contact our support team immediately. Someone may have unauthorized access to your account.")}
         <p style="margin:20px 0 0 0; color:#4a5568;">
             We recommend using a strong, unique password and enabling two-factor authentication for additional security.
@@ -207,16 +210,17 @@ export const emailTemplates = {
     return {
       subject: "Security Alert: Password Changed",
       html: emailLayout(content, userName),
-      text: `Password changed at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Password changed at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 5. Password Reset Requested
-  passwordResetRequested: ({ ip, userAgent, fullName, resetLink, expiresIn = "1 hour" }) => {
+  passwordResetRequested: ({ ip, ipAddress, userAgent, fullName, resetLink, expiresIn = "1 hour" }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Password Reset Request</h2>
         <p style="margin:0 0 15px 0;">We received a request to reset your Rivo account password. Click the button below to create a new password:</p>
@@ -229,7 +233,7 @@ export const emailTemplates = {
             ⏱️ This link will expire in ${expiresIn}.
         </p>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         
         <div style="background-color:#f7fafc; padding:15px; border-radius:8px; margin:20px 0;">
             <p style="margin:0; font-size:13px; color:#4a5568;">
@@ -241,16 +245,17 @@ export const emailTemplates = {
     return {
       subject: "Password Reset Request",
       html: emailLayout(content, userName),
-      text: `Password reset requested at ${time}. Link: ${resetLink}. Expires in ${expiresIn}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Password reset requested at ${time}. Link: ${resetLink}. Expires in ${expiresIn}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 6. Email Changed
-  emailChanged: ({ oldEmail, newEmail, ip, userAgent, fullName }) => {
+  emailChanged: ({ oldEmail, newEmail, ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Email Address Changed</h2>
         <p style="margin:0 0 15px 0;">The email address associated with your Rivo account has been successfully updated.</p>
@@ -268,7 +273,7 @@ export const emailTemplates = {
             </table>
         </div>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If you didn't make this change, someone else may have access to your account. Contact our support team immediately.")}
         
         <p style="margin:20px 0 0 0; color:#4a5568;">
@@ -279,20 +284,21 @@ export const emailTemplates = {
     return {
       subject: "Security Alert: Email Address Changed",
       html: emailLayout(content, userName),
-      text: `Email changed from ${oldEmail} to ${newEmail} at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Email changed from ${oldEmail} to ${newEmail} at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 7. Profile Photo Updated
-  profilePhotoUpdated: ({ ip, userAgent, fullName }) => {
+  profilePhotoUpdated: ({ ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Profile Photo Updated</h2>
         <p style="margin:0 0 15px 0;">Your Rivo account profile picture has been successfully updated. Your new photo is now visible across the platform.</p>
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${successBox("Your profile has been updated successfully")}
         <p style="margin:20px 0 0 0; color:#4a5568;">
             If you didn't make this change, please contact our support team.
@@ -302,20 +308,21 @@ export const emailTemplates = {
     return {
       subject: "Profile Photo Updated",
       html: emailLayout(content, userName),
-      text: `Profile photo updated at ${time}. Device: ${deviceName}.`,
+      text: `Profile photo updated at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 8. Profile Photo Deleted
-  profilePhotoDeleted: ({ ip, userAgent, fullName }) => {
+  profilePhotoDeleted: ({ ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Profile Photo Removed</h2>
         <p style="margin:0 0 15px 0;">Your Rivo account profile picture has been removed. Your profile now displays the default avatar.</p>
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         <p style="margin:20px 0 0 0; color:#4a5568;">
             You can upload a new profile photo anytime from your account settings. If you didn't make this change, please contact our support team.
         </p>
@@ -324,16 +331,17 @@ export const emailTemplates = {
     return {
       subject: "Profile Photo Removed",
       html: emailLayout(content, userName),
-      text: `Profile photo removed at ${time}. Device: ${deviceName}.`,
+      text: `Profile photo removed at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 9. Account Deletion Scheduled
-  accountDeletionScheduled: ({ fullName, deletionDate, ip, userAgent }) => {
+  accountDeletionScheduled: ({ fullName, deletionDate, ip, ipAddress, userAgent }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Account Deletion Requested</h2>
         <p style="margin:0 0 15px 0;">We're sorry to see you go. Your Rivo account has been scheduled for deletion on <strong>${deletionDate}</strong>.</p>
@@ -344,7 +352,7 @@ export const emailTemplates = {
           "This action cannot be undone after the deletion date"
         ])}
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         
         <div style="background-color:#e0e7ff; padding:20px; border-radius:8px; margin:20px 0; text-align:center;">
             <p style="margin:0 0 15px 0; font-weight:600; color:#3730a3; font-size:16px;">Changed your mind?</p>
@@ -355,16 +363,17 @@ export const emailTemplates = {
     return {
       subject: "Account Deletion Scheduled",
       html: emailLayout(content, userName),
-      text: `Account deletion scheduled for ${deletionDate}. Request made at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Account deletion scheduled for ${deletionDate}. Request made at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 10. Account Reactivated
-  accountReactivated: ({ fullName, ip, userAgent }) => {
+  accountReactivated: ({ fullName, ip, ipAddress, userAgent }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Welcome Back!</h2>
         <p style="margin:0 0 15px 0;">Great news! Your Rivo account has been successfully reactivated. We're glad to have you back in the community.</p>
@@ -378,7 +387,7 @@ export const emailTemplates = {
             </ul>
         </div>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         
         <p style="margin:20px 0 0 0; color:#4a5568;">
             Start exploring and rediscover your favorite music right away!
@@ -388,7 +397,7 @@ export const emailTemplates = {
     return {
       subject: "Welcome Back to Rivo!",
       html: emailLayout(content, userName),
-      text: `Account reactivated at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `Account reactivated at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
@@ -428,11 +437,12 @@ export const emailTemplates = {
   },
 
   // 12. Two-Factor Authentication Enabled
-  twoFactorEnabled: ({ ip, userAgent, fullName }) => {
+  twoFactorEnabled: ({ ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Two-Factor Authentication Enabled</h2>
         <p style="margin:0 0 15px 0;">Two-factor authentication (2FA) has been successfully enabled on your Rivo account. Your account security has been enhanced!</p>
@@ -448,28 +458,29 @@ export const emailTemplates = {
             </ul>
         </div>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If you didn't enable 2FA, someone may have unauthorized access to your account. Contact our support team immediately.")}
     `;
 
     return {
       subject: "Two-Factor Authentication Enabled",
       html: emailLayout(content, userName),
-      text: `2FA enabled at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `2FA enabled at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 13. Two-Factor Authentication Disabled
-  twoFactorDisabled: ({ ip, userAgent, fullName }) => {
+  twoFactorDisabled: ({ ip, ipAddress, userAgent, fullName }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Two-Factor Authentication Disabled</h2>
         <p style="margin:0 0 15px 0;">Two-factor authentication (2FA) has been disabled on your Rivo account. Your account security level has been reduced.</p>
         
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
         ${warningBox("If you didn't disable 2FA, someone may have unauthorized access to your account. Re-enable 2FA immediately and contact our support team.")}
 
         <div style="background-color:#fef3c7; border-radius:8px; padding:20px; margin:20px 0;">
@@ -485,16 +496,17 @@ export const emailTemplates = {
     return {
       subject: "Security Alert: Two-Factor Authentication Disabled",
       html: emailLayout(content, userName),
-      text: `2FA disabled at ${time}. IP: ${ip}. Device: ${deviceName}.`,
+      text: `2FA disabled at ${time}. IP: ${resolvedIp}. Device: ${deviceName}.`,
     };
   },
 
   // 14. Suspicious Activity Detected
-  suspiciousActivity: ({ fullName, activityDetails, ip, userAgent }) => {
+  suspiciousActivity: ({ fullName, activityDetails, ip, ipAddress, userAgent }) => {
     const time = getISTTime();
     const deviceName = getDeviceDetails(userAgent);
     const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
 
+    const resolvedIp = ipAddress || ip;
     const content = `
         <h2 style="margin:0 0 20px 0; font-size:24px; color:#c53030; font-weight:600;">⚠️ Suspicious Activity Detected</h2>
         <p style="margin:0 0 15px 0;">We detected unusual activity on your Rivo account that may indicate unauthorized access.</p>
@@ -504,7 +516,7 @@ export const emailTemplates = {
             <p style="margin:0; color:#742a2a; line-height:1.6;">${activityDetails}</p>
         </div>
 
-        ${securityInfoBox(time, ip, deviceName)}
+        ${securityInfoBox(time, resolvedIp, deviceName)}
 
         <div style="background-color:#e0e7ff; padding:20px; border-radius:8px; margin:20px 0;">
             <p style="margin:0 0 15px 0; font-weight:600; color:#3730a3; font-size:16px;">Immediate Actions Required:</p>
@@ -524,7 +536,7 @@ export const emailTemplates = {
     return {
       subject: "🚨 Security Alert: Suspicious Activity Detected",
       html: emailLayout(content, userName),
-      text: `Suspicious activity detected at ${time}. Details: ${activityDetails}. IP: ${ip}. Device: ${deviceName}. Please secure your account immediately.`,
+      text: `Suspicious activity detected at ${time}. Details: ${activityDetails}. IP: ${resolvedIp}. Device: ${deviceName}. Please secure your account immediately.`,
     };
   },
 };
