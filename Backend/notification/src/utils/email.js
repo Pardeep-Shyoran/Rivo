@@ -94,7 +94,7 @@ const getGmailClient = () => {
 export default async function sendEmail(to, subject, text, html) {
   const gmail = getGmailClient();
   const mailOptions = {
-    from: `"Rivo App" <${config.EMAIL_USER}>`,
+    from: `"Rivo Music" <${config.EMAIL_USER}>`,
     to,
     subject,
     text,
