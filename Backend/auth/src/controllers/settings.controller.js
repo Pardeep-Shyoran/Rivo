@@ -4,6 +4,13 @@ import { uploadToImageKit, deleteFromImageKit } from "../services/imagekit.servi
 import { publishToQueue } from "../broker/rabbit.js"; // re-added for security notifications
 import { wakeUpNotificationService } from "../utils/wakeUpService.js";
 
+// Unified IP resolver (handles proxies & IPv6 mapped IPv4 addresses)
+function resolveClientIp(req) {
+  const raw = (req.headers['x-forwarded-for']?.split(',')[0].trim()) || req.ip || '';
+  // Strip IPv6 prefix if present (::ffff:1.2.3.4)
+  return raw.startsWith('::ffff:') ? raw.replace('::ffff:', '') : raw;
+}
+
 // Get user settings/profile
 export async function getUserSettings(req, res) {
   try {
@@ -68,12 +75,14 @@ export async function updateProfile(req, res) {
     // Publish security notification only if something actually changed
     if (changedFields.length) {
       try {
+        const ip = resolveClientIp(req);
         await publishToQueue("user_profile_updated", {
           userId: user._id.toString(),
           email: user.email,
           changed: changedFields,
           timestamp: new Date().toISOString(),
-          ip: req.ip,
+          ip,
+          ipAddress: ip,
           userAgent: req.headers['user-agent'] || 'unknown',
         });
       } catch (e) {
@@ -142,11 +151,13 @@ export async function updatePassword(req, res) {
 
     // Publish security notification for password change
     try {
+      const ip = resolveClientIp(req);
       await publishToQueue("user_password_changed", {
         userId: user._id.toString(),
         email: user.email,
         timestamp: new Date().toISOString(),
-        ip: req.ip,
+        ip,
+        ipAddress: ip,
         userAgent: req.headers['user-agent'] || 'unknown',
       });
     } catch (e) {
@@ -362,12 +373,14 @@ export async function uploadProfilePicture(req, res) {
 
     // Security/event notification for profile picture change
     try {
+      const ip = resolveClientIp(req);
       await publishToQueue("user_profile_picture_updated", {
         userId: user._id.toString(),
         email: user.email,
         profilePicture: uploadResult.url,
         timestamp: new Date().toISOString(),
-        ip: req.ip,
+        ip,
+        ipAddress: ip,
         userAgent: req.headers['user-agent'] || 'unknown',
       });
     } catch (e) {
@@ -416,11 +429,13 @@ export async function deleteProfilePicture(req, res) {
 
     // Security/event notification for profile picture deletion
     try {
+      const ip = resolveClientIp(req);
       await publishToQueue("user_profile_picture_deleted", {
         userId: user._id.toString(),
         email: user.email,
         timestamp: new Date().toISOString(),
-        ip: req.ip,
+        ip,
+        ipAddress: ip,
         userAgent: req.headers['user-agent'] || 'unknown',
       });
     } catch (e) {
