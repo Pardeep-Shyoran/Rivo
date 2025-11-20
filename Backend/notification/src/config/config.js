@@ -13,8 +13,6 @@ const _config = {
     RABBITMQ_URI: process.env.RABBITMQ_URI,
     REDIRECT_URI: process.env.REDIRECT_URI,
     SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
-    EMAIL_PROVIDER: process.env.EMAIL_PROVIDER || 'sendgrid',
-    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM || process.env.EMAIL_USER,
 }
 
