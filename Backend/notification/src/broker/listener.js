@@ -8,20 +8,34 @@ function startListener() {
         // Account creation welcome email
         subscribeToQueue('user_created', async (msg) => {
         const { email, role, fullName: { firstName, lastName } = {} } = msg;
+        const userName = `${firstName || ''} ${firstName || lastName ? ' ' : ''}${lastName || ''}`.trim();
 
-        const html = `
-            <h1>Welcome to Rivo, ${firstName || ''} ${lastName || ''}!</h1>
-            <p>Your account has been created with the role of <strong>${role}</strong>.</p>
-            <p>We're excited to have you on board. Explore music, create playlists, and engage with artists.</p>
-            <p>If this wasn't you, please contact support immediately.</p>
-            <hr />
-            <p style="font-size:12px;color:#666;">This is an automated message. Please do not reply.</p>
+        const content = `
+            <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Welcome to Rivo!</h2>
+            <p style="margin:0 0 15px 0;">We're thrilled to have you join our music community. Your account has been successfully created with the role of <strong style="color:#667eea;">${role}</strong>.</p>
+            
+            <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius:8px; padding:20px; margin:20px 0;">
+                <h3 style="margin:0 0 15px 0; font-size:18px; color:#1a202c; font-weight:600;">Get Started:</h3>
+                <ul style="margin:0; padding-left:20px; color:#4a5568; line-height:1.8;">
+                    <li>Explore millions of songs and playlists</li>
+                    <li>Create and share your own playlists</li>
+                    <li>Connect with artists and other music lovers</li>
+                    <li>Discover personalized music recommendations</li>
+                </ul>
+            </div>
+
+            <p style="margin:20px 0 0 0; color:#4a5568;">
+                If you have any questions or need assistance, our support team is here to help.
+            </p>
         `;
+
+        const { emailLayout } = await import('../utils/email.js');
+        const html = emailLayout(content, userName);
 
         await sendEmail(
             email,
             'Welcome to Rivo!',
-            `Welcome to Rivo, ${firstName || ''} ${lastName || ''}! Your ${role} account is ready.`,
+            `Welcome to Rivo, ${userName}! Your ${role} account is ready.`,
             html
         );
     });
@@ -40,30 +54,30 @@ function startListener() {
 
     // Profile update security notification
         subscribeToQueue('user_profile_updated', async (msg) => {
-            const { email, changed = [], timestamp, ip, userAgent } = msg;
+            const { email, fullName, changed = [], timestamp, ip, userAgent } = msg;
             if (!changed.length) return; // Nothing notable changed
-            const { subject, text, html } = templates.profileUpdated({ changed, timestamp, ip, userAgent });
+            const { subject, text, html } = templates.profileUpdated({ fullName, changed, timestamp, ip, userAgent });
             await sendEmail(email, subject, text, html);
         });
 
     // Password change security notification
         subscribeToQueue('user_password_changed', async (msg) => {
-            const { email, timestamp, ip, userAgent } = msg;
-            const { subject, text, html } = templates.passwordChanged({ timestamp, ip, userAgent });
+            const { email, fullName, timestamp, ip, userAgent } = msg;
+            const { subject, text, html } = templates.passwordChanged({ fullName, timestamp, ip, userAgent });
             await sendEmail(email, subject, text, html);
         });
 
             // Profile picture updated
             subscribeToQueue('user_profile_picture_updated', async (msg) => {
-                const { email, timestamp, ip, userAgent } = msg;
-                const { subject, text, html } = templates.profilePhotoUpdated({ timestamp, ip, userAgent });
+                const { email, fullName, timestamp, ip, userAgent } = msg;
+                const { subject, text, html } = templates.profilePhotoUpdated({ fullName, timestamp, ip, userAgent });
                 await sendEmail(email, subject, text, html);
             });
 
             // Profile picture deleted
             subscribeToQueue('user_profile_picture_deleted', async (msg) => {
-                const { email, timestamp, ip, userAgent } = msg;
-                const { subject, text, html } = templates.profilePhotoDeleted({ timestamp, ip, userAgent });
+                const { email, fullName, timestamp, ip, userAgent } = msg;
+                const { subject, text, html } = templates.profilePhotoDeleted({ fullName, timestamp, ip, userAgent });
                 await sendEmail(email, subject, text, html);
             });
         
