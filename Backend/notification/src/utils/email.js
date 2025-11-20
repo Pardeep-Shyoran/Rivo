@@ -1,47 +1,7 @@
 import { google } from "googleapis";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
-import { UAParser } from "ua-parser-js"; // 1. Import the parser
 import config from "../config/config.js";
-
-// ==========================================
-// HELPER FUNCTIONS (Time & Device Parsing)
-// ==========================================
-
-/**
- * 1. Get Current Time in India (IST)
- * Returns format: "19 Nov, 2025 at 11:30 PM"
- */
-const getISTTime = () => {
-  return new Date().toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
-/**
- * 2. Parse User Agent String into Readable Text
- * Input: "Mozilla/5.0 (Windows NT 10.0...)"
- * Output: "Chrome on Windows 10"
- */
-const getDeviceDetails = (userAgentString) => {
-  if (!userAgentString) return "Unknown Device";
-  
-  const parser = new UAParser(userAgentString);
-  const result = parser.getResult();
-  
-  const browser = result.browser.name ? `${result.browser.name}` : "";
-  const os = result.os.name ? `${result.os.name} ${result.os.version || ""}` : "";
-  const device = result.device.model ? `${result.device.vendor} ${result.device.model}` : "";
-
-  // Join parts. Example: "Chrome" + "Windows 10" -> "Chrome on Windows 10"
-  const parts = [browser, os, device].filter(Boolean);
-  return parts.length > 0 ? parts.join(" on ") : "Unknown Device";
-};
+import emailTemplates from "./emailTemplates.js";
 
 // ==========================================
 // EMAIL LAYOUT WRAPPER
@@ -84,7 +44,7 @@ export const emailLayout = (content, greeting = "") => `
                     <tr>
                         <td style="background-color:#f7fafc; padding:25px 40px; border-top:1px solid #e2e8f0;">
                             <p style="margin:0 0 10px 0; font-size:13px; color:#718096; line-height:1.5;">
-                                Need help? Contact us at <a href="mailto:support@rivo.com" style="color:#667eea; text-decoration:none;">support@rivo.com</a>
+                                Need help? Contact us at <a href="mailto:${config.SUPPORT_EMAIL}" style="color:#667eea; text-decoration:none;">${config.SUPPORT_EMAIL}</a>
                             </p>
                             <p style="margin:0; font-size:12px; color:#a0aec0;">
                                 © ${new Date().getFullYear()} Rivo. All rights reserved.
@@ -99,153 +59,12 @@ export const emailLayout = (content, greeting = "") => `
 </html>
 `;
 
-// Security Info Box Component
-const securityInfoBox = (time, ip, deviceName) => `
-<div style="background: linear-gradient(to right, #f7fafc, #edf2f7); border-left:4px solid #667eea; padding:20px; border-radius:8px; margin:20px 0;">
-    <p style="margin:0 0 12px 0; font-size:14px; font-weight:600; color:#2d3748;">Security Details:</p>
-    <table style="width:100%; font-size:14px; color:#4a5568;">
-        <tr>
-            <td style="padding:4px 0; font-weight:500; width:100px;">Time (IST):</td>
-            <td style="padding:4px 0;">${time}</td>
-        </tr>
-        <tr>
-            <td style="padding:4px 0; font-weight:500;">IP Address:</td>
-            <td style="padding:4px 0;">${ip || "Unknown"}</td>
-        </tr>
-        <tr>
-            <td style="padding:4px 0; font-weight:500;">Device:</td>
-            <td style="padding:4px 0;">${deviceName}</td>
-        </tr>
-    </table>
-</div>
-`;
-
-// Warning Box Component
-const warningBox = (message) => `
-<div style="background-color:#fff5f5; border:1px solid #feb2b2; border-radius:8px; padding:16px; margin:20px 0;">
-    <p style="margin:0; color:#c53030; font-size:14px; font-weight:500;">
-        ⚠️ ${message}
-    </p>
-</div>
-`;
-
 // ==========================================
-// TEMPLATES
+// EXPORT EMAIL TEMPLATES
 // ==========================================
-export const templates = {
-  profileUpdated: ({ changed, ip, userAgent, fullName }) => {
-    const list = changed.map((f) => `<li>${f}</li>`).join("");
-    const time = getISTTime();
-    const deviceName = getDeviceDetails(userAgent); // Parse the raw string
-
-    return {
-      subject: "Security Alert: Your Profile Was Updated",
-      html: `
-        <h2>Profile Changes Detected</h2>
-        <p>The following fields on your Rivo profile were updated:</p>
-        <ul>${list}</ul>
-        <div style="background:#f4f4f4; padding:10px; border-radius:5px;">
-            <p><strong>Time (IST):</strong> ${time}</p>
-            <p><strong>IP Address:</strong> ${ip || "Unknown"}</p>
-            <p><strong>Device:</strong> ${deviceName}</p>
-        </div>
-        <p>If this wasn’t you, please reset your password immediately.</p>
-      `,
-      text: `Profile updated. Time: ${time}. IP: ${ip}. Device: ${deviceName}.`,
-    };
-  },
-
-  passwordChanged: ({ ip, userAgent, fullName }) => {
-    const time = getISTTime();
-    const deviceName = getDeviceDetails(userAgent);
-    const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
-
-    const content = `
-        <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Password Changed Successfully</h2>
-        <p style="margin:0 0 15px 0;">Your Rivo account password was successfully changed. This is a security notification to confirm the update.</p>
-        ${securityInfoBox(time, ip, deviceName)}
-        ${warningBox("If you didn't change your password, please contact our support team immediately. Someone may have unauthorized access to your account.")}
-        <p style="margin:20px 0 0 0; color:#4a5568;">
-            We recommend using a strong, unique password and enabling two-factor authentication for additional security.
-        </p>
-    `;
-
-    return {
-      subject: "Security Alert: Password Changed",
-      html: emailLayout(content, userName),
-      text: `Password changed at ${time}. IP: ${ip}. Device: ${deviceName}.`,
-    };
-  },
-
-  profilePhotoUpdated: ({ ip, userAgent, fullName }) => {
-    const time = getISTTime();
-    const deviceName = getDeviceDetails(userAgent);
-    const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
-
-    const content = `
-        <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Profile Photo Updated</h2>
-        <p style="margin:0 0 15px 0;">Your Rivo account profile picture has been successfully updated. Your new photo is now visible across the platform.</p>
-        ${securityInfoBox(time, ip, deviceName)}
-        <div style="background-color:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:16px; margin:20px 0;">
-            <p style="margin:0; color:#166534; font-size:14px; font-weight:500;">
-                ✓ Your profile has been updated successfully
-            </p>
-        </div>
-        <p style="margin:20px 0 0 0; color:#4a5568;">
-            If you didn't make this change, please contact our support team.
-        </p>
-    `;
-
-    return {
-      subject: "Profile Photo Updated",
-      html: emailLayout(content, userName),
-      text: `Profile photo updated at ${time}. Device: ${deviceName}.`,
-    };
-  },
-
-  profilePhotoDeleted: ({ ip, userAgent, fullName }) => {
-    const time = getISTTime();
-    const deviceName = getDeviceDetails(userAgent);
-    const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
-
-    const content = `
-        <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">Profile Photo Removed</h2>
-        <p style="margin:0 0 15px 0;">Your Rivo account profile picture has been removed. Your profile now displays the default avatar.</p>
-        ${securityInfoBox(time, ip, deviceName)}
-        <p style="margin:20px 0 0 0; color:#4a5568;">
-            You can upload a new profile photo anytime from your account settings. If you didn't make this change, please contact our support team.
-        </p>
-    `;
-
-    return {
-      subject: "Profile Photo Removed",
-      html: emailLayout(content, userName),
-      text: `Profile photo removed at ${time}. Device: ${deviceName}.`,
-    };
-  },
-
-  userLoggedIn: ({ fullName, ip, userAgent }) => {
-    const time = getISTTime();
-    const deviceName = getDeviceDetails(userAgent);
-    const userName = fullName ? `${fullName.firstName || ""} ${fullName.lastName || ""}`.trim() : "";
-
-    const content = `
-        <h2 style="margin:0 0 20px 0; font-size:24px; color:#1a202c; font-weight:600;">New Login Detected</h2>
-        <p style="margin:0 0 15px 0;">We detected a new login to your Rivo account. Welcome back!</p>
-        ${securityInfoBox(time, ip, deviceName)}
-        ${warningBox("If this wasn't you, please secure your account immediately by changing your password.")}
-        <p style="margin:20px 0 0 0; color:#4a5568;">
-            We're always working to keep your account secure. If you have any concerns, please don't hesitate to contact us.
-        </p>
-    `;
-
-    return {
-      subject: "Security Alert: New Login Detected",
-      html: emailLayout(content, userName),
-      text: `New login detected for ${userName} at ${time}. IP: ${ip}. Device: ${deviceName}.`,
-    };
-  },
-};
+// All email templates are now in emailTemplates.js for better organization
+// Each template includes proper device parsing and security details
+export const templates = emailTemplates;
 
 // ==========================================
 // GMAIL CLIENT & SENDER (Singleton)

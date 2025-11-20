@@ -12,6 +12,7 @@ const _config = {
     EMAIL_USER: process.env.EMAIL_USER,
     RABBITMQ_URI: process.env.RABBITMQ_URI,
     REDIRECT_URI: process.env.REDIRECT_URI,
+    SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
 }
 
 // Validate critical environment variables
