@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
+import sgMail from "@sendgrid/mail";
 import config from "../config/config.js";
 import emailTemplates from "./emailTemplates.js";
 
@@ -67,16 +68,17 @@ export const emailLayout = (content, greeting = "") => `
 export const templates = emailTemplates;
 
 // ==========================================
-// GMAIL CLIENT & SENDER (Singleton)
+// EMAIL PROVIDERS
 // ==========================================
 
+// Gmail OAuth2 Client (Singleton)
 let oauth2ClientInstance = null;
 
 const getGmailClient = () => {
   const required = ["CLIENT_ID", "CLIENT_SECRET", "REFRESH_TOKEN", "EMAIL_USER"];
   const missing = required.filter((k) => !config[k]);
   if (missing.length) {
-    throw new Error(`Missing config: ${missing.join(", ")}`);
+    throw new Error(`Missing Gmail config: ${missing.join(", ")}`);
   }
 
   if (!oauth2ClientInstance) {
@@ -91,7 +93,34 @@ const getGmailClient = () => {
   return google.gmail({ version: "v1", auth: oauth2ClientInstance });
 };
 
-export default async function sendEmail(to, subject, text, html) {
+// SendGrid Email Sender
+async function sendWithSendGrid(to, subject, text, html) {
+  if (!config.SENDGRID_API_KEY) {
+    throw new Error("SENDGRID_API_KEY is not configured");
+  }
+
+  sgMail.setApiKey(config.SENDGRID_API_KEY);
+
+  const msg = {
+    to,
+    from: config.EMAIL_FROM || config.EMAIL_USER,
+    subject,
+    text,
+    html,
+  };
+
+  try {
+    const response = await sgMail.send(msg);
+    console.log(`[email] SendGrid sent! Status: ${response[0].statusCode}`);
+    return { id: response[0].headers['x-message-id'], provider: 'sendgrid' };
+  } catch (error) {
+    console.error("[email] SendGrid failed:", error.response?.body || error.message);
+    throw error;
+  }
+}
+
+// Gmail Email Sender
+async function sendWithGmail(to, subject, text, html) {
   const gmail = getGmailClient();
   const mailOptions = {
     from: `"Rivo Music" <${config.EMAIL_USER}>`,
@@ -120,10 +149,30 @@ export default async function sendEmail(to, subject, text, html) {
       userId: "me",
       requestBody: { raw },
     });
-    console.log(`[email] Sent! ID: ${res.data.id}`);
-    return res.data;
+    console.log(`[email] Gmail sent! ID: ${res.data.id}`);
+    return { id: res.data.id, provider: 'gmail' };
   } catch (err) {
-    console.error("[email] Failed to send:", err);
+    console.error("[email] Gmail failed:", err.message);
     throw err;
+  }
+}
+
+// Main Email Function - Auto-selects provider
+export default async function sendEmail(to, subject, text, html) {
+  const provider = config.EMAIL_PROVIDER?.toLowerCase() || 'gmail';
+
+  console.log(`[email] Sending via ${provider.toUpperCase()} to ${to}`);
+
+  try {
+    if (provider === 'gmail') {
+      return await sendWithGmail(to, subject, text, html);
+    } else if (provider === 'sendgrid') {
+      return await sendWithSendGrid(to, subject, text, html);
+    } else {
+      throw new Error(`Unknown email provider: ${provider}. Use 'gmail' or 'sendgrid'`);
+    }
+  } catch (error) {
+    console.error(`[email] Failed to send via ${provider}:`, error.message);
+    throw error;
   }
 }
