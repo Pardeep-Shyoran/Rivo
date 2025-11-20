@@ -152,8 +152,21 @@ async function sendWithGmail(to, subject, text, html) {
     console.log(`[email] Gmail sent! ID: ${res.data.id}`);
     return { id: res.data.id, provider: 'gmail' };
   } catch (err) {
-    console.error("[email] Gmail failed:", err.message);
-    throw err;
+    const status = err?.code || err?.response?.status;
+    const apiMsg = err?.response?.data?.error?.message;
+    const details = err?.response?.data || err?.errors || err?.message;
+    console.error(
+      "[email] Gmail failed:",
+      status ? `(status ${status})` : "",
+      apiMsg || details
+    );
+    if ((apiMsg || err?.message || "").toLowerCase().includes("precondition check failed")) {
+      console.error(
+        "[email] Hint:",
+        "This usually means the 'From' address is not a verified send-as alias for the authenticated Gmail account. Set EMAIL_USER to the same Gmail account used for CLIENT_ID/REFRESH_TOKEN, or verify the alias in Gmail settings (Settings > Accounts > Send mail as)."
+      );
+    }
+    throw new Error(apiMsg || err.message || "Gmail send failed");
   }
 }
 
