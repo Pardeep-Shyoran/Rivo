@@ -169,6 +169,13 @@ export async function googleAuthCallback(req, res) {
       { expiresIn: "2d" }
     );
 
+    await publishToQueue("user_logged_in", {
+    id: user._id,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+  });
+
     const cookieOptions = {
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
