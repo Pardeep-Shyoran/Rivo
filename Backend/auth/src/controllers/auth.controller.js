@@ -155,7 +155,6 @@ export async function login(req, res) {
 }
 
 export async function googleAuthCallback(req, res) {
-
   wakeUpNotificationService();
 
   const user = req.user;
@@ -177,10 +176,10 @@ export async function googleAuthCallback(req, res) {
     );
 
     await publishToQueue("user_logged_in", {
-      id: user._id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
+      id: isUserAlreadyExists._id, // use DB user id, not raw Google profile
+      email: isUserAlreadyExists.email, // always safe from DB
+      fullName: isUserAlreadyExists.fullName,
+      role: isUserAlreadyExists.role,
     });
 
     const cookieOptions = {
