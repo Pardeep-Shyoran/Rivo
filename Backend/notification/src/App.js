@@ -1,7 +1,9 @@
 import express from 'express';
 import { getConnectionStatus } from './broker/rabbit.js';
+import cors from 'cors';
 
 const app = express();
+app.use(cors());
 
 // Enhanced health check endpoint with RabbitMQ status
 app.get('/health', (_req, res) => {
