@@ -4,6 +4,7 @@ import startListener from "./src/broker/listener.js";
 import config from "./src/config/config.js";
 import net from "net";
 import dns from "dns";
+import https from "https";
 // Force Node to use IPv4 instead of IPv6
 dns.setDefaultResultOrder("ipv4first");
 
@@ -66,4 +67,22 @@ app.listen(PORT, HOST, () => {
       console.error("Error details:", err?.message || err);
       console.error("⚠️  Service will start but emails will NOT be sent!");
     });
+
+  // Production keep-alive pings (e.g., Render free plan sleep prevention)
+  if (process.env.NODE_ENV === 'production') {
+    const base = config.NOTIFICATION_SERVICE_URL || '';
+    const keepAliveUrl = base ? (base.replace(/\/$/, '') + '/health') : null;
+    if (keepAliveUrl) {
+      console.log(`[Keep-Alive] Enabled. Will ping ${keepAliveUrl} every 10m.`);
+      setInterval(() => {
+        https.get(keepAliveUrl, (res) => {
+          console.log(`[Keep-Alive] Ping status: ${res.statusCode}`);
+        }).on('error', (e) => {
+          console.error(`[Keep-Alive] Ping failed: ${e.message}`);
+        });
+      }, 10 * 60 * 1000); // 10 minutes
+    } else {
+      console.warn('[Keep-Alive] NOTIFICATION_SERVICE_URL not set; keep-alive disabled');
+    }
+  }
 });

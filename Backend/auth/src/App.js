@@ -49,6 +49,11 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 
+// Basic health endpoint for uptime/keep-alive pings
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', service: 'auth-service', timestamp: new Date().toISOString() });
+});
+
 
 // Configure Passport to use Google OAuth 2.0 strategy
 passport.use(new GoogleStrategy({

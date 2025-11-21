@@ -43,4 +43,9 @@ App.use(express.json());
 
 App.use("/api/music", musicRoutes);
 
+// Basic health endpoint for uptime/keep-alive pings
+App.get('/health', (_req, res) => {
+  res.json({ status: 'ok', service: 'music-service', timestamp: new Date().toISOString() });
+});
+
 export default App;

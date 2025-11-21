@@ -14,6 +14,8 @@ const _config = {
     REDIRECT_URI: process.env.REDIRECT_URI,
     SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
     EMAIL_FROM: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    NOTIFICATION_SERVICE_URL: process.env.NOTIFICATION_SERVICE_URL,
+    NODE_ENV: process.env.NODE_ENV,
 }
 
 // Validate critical environment variables
