@@ -5,10 +5,11 @@ let channel = null;
 let connection = null;
 let isConnecting = false;
 let retryCount = 0;
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5; // Increased from 3
 const RETRY_DELAY = 10000; // 10 seconds
 let lastConnectionAttempt = null;
 let lastSuccessfulConnection = null;
+let healthCheckInterval = null;
 
 export async function connect() {
   // Prevent multiple simultaneous connection attempts
@@ -70,6 +71,9 @@ export async function connect() {
     retryCount = 0;
     isConnecting = false;
     lastSuccessfulConnection = new Date().toISOString();
+    
+    // Start periodic health check to keep connection alive
+    startHealthCheck();
   } catch (err) {
     connection = null;
     channel = null;
@@ -132,6 +136,43 @@ export async function subscribeToQueue(queueName, callback) {
   });
 }
 
+// Periodic health check to keep connection alive and detect issues early
+function startHealthCheck() {
+  // Clear any existing interval
+  if (healthCheckInterval) {
+    clearInterval(healthCheckInterval);
+  }
+  
+  // Check connection health every 5 minutes
+  healthCheckInterval = setInterval(async () => {
+    if (!connection || !channel) {
+      console.warn('⚠️ Health check: Connection lost, attempting reconnect...');
+      if (retryCount < MAX_RETRIES) {
+        await connect();
+      }
+      return;
+    }
+    
+    try {
+      // Send a lightweight check to verify channel is alive
+      await channel.checkQueue('user_created');
+      console.log('💚 Health check: RabbitMQ connection is healthy');
+      // Reset retry count on successful health check
+      retryCount = 0;
+      lastSuccessfulConnection = new Date().toISOString();
+    } catch (err) {
+      console.error('❌ Health check failed:', err.message);
+      // Connection is stale, reset and reconnect
+      connection = null;
+      channel = null;
+      if (retryCount < MAX_RETRIES) {
+        console.log('🔄 Attempting to reconnect...');
+        await connect();
+      }
+    }
+  }, 5 * 60 * 1000); // Every 5 minutes
+}
+
 // Get connection status for health checks
 export function getConnectionStatus() {
   return {
@@ -144,9 +185,42 @@ export function getConnectionStatus() {
   };
 }
 
+// Force reconnection (useful for external health checks)
+export async function ensureConnection() {
+  if (!connection || !channel) {
+    console.log('🔄 Ensuring connection...');
+    // Reset retry count to allow reconnection
+    if (retryCount >= MAX_RETRIES) {
+      console.log('♻️ Resetting retry count to allow reconnection');
+      retryCount = 0;
+    }
+    await connect();
+    return getConnectionStatus();
+  }
+  
+  try {
+    // Verify connection is actually working
+    await channel.checkQueue('user_created');
+    return getConnectionStatus();
+  } catch (err) {
+    console.error('Connection verification failed:', err.message);
+    connection = null;
+    channel = null;
+    retryCount = 0; // Reset to allow reconnection
+    await connect();
+    return getConnectionStatus();
+  }
+}
+
 // Graceful shutdown function
 export async function closeConnection() {
   try {
+    // Clear health check interval
+    if (healthCheckInterval) {
+      clearInterval(healthCheckInterval);
+      healthCheckInterval = null;
+    }
+    
     if (channel) {
       console.log('Closing RabbitMQ channel...');
       await channel.close();

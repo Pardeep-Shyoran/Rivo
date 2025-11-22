@@ -1,5 +1,5 @@
 import express from 'express';
-import { getConnectionStatus } from './broker/rabbit.js';
+import { getConnectionStatus, ensureConnection } from './broker/rabbit.js';
 import cors from 'cors';
 
 const app = express();
@@ -34,6 +34,24 @@ app.get('/status', (_req, res) => {
 		},
 		timestamp: new Date().toISOString()
 	});
+});
+
+// Reconnection endpoint - triggers connection verification/restoration
+app.post('/reconnect', async (_req, res) => {
+	try {
+		const status = await ensureConnection();
+		res.json({
+			message: 'Connection check completed',
+			rabbitmq: status,
+			timestamp: new Date().toISOString()
+		});
+	} catch (error) {
+		res.status(500).json({
+			error: 'Reconnection failed',
+			details: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
 });
 
 export default app;
