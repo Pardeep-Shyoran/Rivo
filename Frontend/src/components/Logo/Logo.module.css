@@ -10,6 +10,12 @@
   justify-content: center;
 }
 
+.brandImage {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+}
+
 .brandMark {
   width: 36px;
   height: 36px;
