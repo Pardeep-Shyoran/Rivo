@@ -21,6 +21,23 @@ const musicSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Aggregated counters for fast analytics (updated on play & like endpoints)
+    playCount: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    likeCount: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    genre: {
+      type: String,
+      trim: true,
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true }
 );

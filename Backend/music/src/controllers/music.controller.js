@@ -3,6 +3,8 @@ import musicModel from "../models/music.model.js";
 import playlistModel from "../models/playlist.model.js";
 import playActivityModel from "../models/playActivity.model.js";
 import playHistoryModel from "../models/playHistory.model.js";
+import DailyTrackStat from "../models/dailyTrackStat.model.js";
+import TrackLike from "../models/trackLike.model.js";
 
 
 export async function getAllMusics(req, res) {
@@ -538,6 +540,19 @@ export async function logPlay(req, res) {
       deviceId: deviceId || null,
     });
 
+    // Increment aggregated counters on music document (fast summary)
+    await musicModel.updateOne({ _id: id }, { $inc: { playCount: 1 } });
+
+    // Update per-day rollup (artistId + trackId + day)
+    if (music.artistId) {
+      const day = now.toISOString().slice(0,10);
+      await DailyTrackStat.updateOne(
+        { artistId: music.artistId, trackId: music._id, day },
+        { $inc: { plays: 1 }, $setOnInsert: { likes: 0 } },
+        { upsert: true }
+      );
+    }
+
     return res.status(200).json({
       message: 'Play logged',
       activity: {
@@ -552,6 +567,76 @@ export async function logPlay(req, res) {
     return res.status(500).json({ message: 'Error logging play', error: err.message });
   }
 }
+
+// ---------------- LIKES -----------------
+// POST /api/music/like/:id
+export async function likeTrack(req, res) {
+  try {
+    const { id } = req.params; // track id
+    const userId = req.user.id;
+    const track = await musicModel.findById(id).lean();
+    if (!track) {
+      return res.status(404).json({ message: 'Track not found' });
+    }
+
+    const existing = await TrackLike.findOne({ userId, trackId: id });
+    if (existing) {
+      return res.status(200).json({ message: 'Already liked' });
+    }
+
+    await TrackLike.create({ userId, trackId: id, artistId: track.artistId || null });
+    await musicModel.updateOne({ _id: id }, { $inc: { likeCount: 1 } });
+
+    // Update per-day stat like rollup
+    if (track.artistId) {
+      const day = new Date().toISOString().slice(0,10);
+      await DailyTrackStat.updateOne(
+        { artistId: track.artistId, trackId: track._id, day },
+        { $inc: { likes: 1 }, $setOnInsert: { plays: 0 } },
+        { upsert: true }
+      );
+    }
+
+    return res.status(200).json({ message: 'Track liked' });
+  } catch (err) {
+    console.error('Error liking track:', err);
+    return res.status(500).json({ message: 'Error liking track', error: err.message });
+  }
+}
+
+// DELETE /api/music/like/:id
+export async function unlikeTrack(req, res) {
+  try {
+    const { id } = req.params; // track id
+    const userId = req.user.id;
+    const existing = await TrackLike.findOne({ userId, trackId: id });
+    if (!existing) {
+      return res.status(404).json({ message: 'Like not found' });
+    }
+
+    await TrackLike.deleteOne({ _id: existing._id });
+    // Decrement like counter (do not go below zero)
+    await musicModel.updateOne({ _id: id, likeCount: { $gt: 0 } }, { $inc: { likeCount: -1 } });
+    return res.status(200).json({ message: 'Track unliked' });
+  } catch (err) {
+    console.error('Error unliking track:', err);
+    return res.status(500).json({ message: 'Error unliking track', error: err.message });
+  }
+}
+
+// GET /api/music/like/:id/status
+export async function likeStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const liked = await TrackLike.findOne({ userId, trackId: id }).lean();
+    return res.status(200).json({ liked: Boolean(liked) });
+  } catch (err) {
+    console.error('Error fetching like status:', err);
+    return res.status(500).json({ message: 'Error fetching like status', error: err.message });
+  }
+}
+
 
 // Get current streak for authenticated user
 // GET /api/music/streak

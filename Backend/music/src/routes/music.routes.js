@@ -3,6 +3,7 @@ import multer from "multer";
 import * as musicController from "../controllers/music.controller.js";
 import * as authMiddleware from "../middlewares/auth.middleware.js";
 import * as followController from "../controllers/follow.controller.js";
+import * as analyticsController from "../controllers/analytics.controller.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -108,6 +109,31 @@ router.get(
   followController.getArtistFollowers
 );
 
+// -------- Artist Analytics Endpoints --------
+router.get(
+  "/artist/analytics/plays",
+  authMiddleware.authArtistMiddleware,
+  analyticsController.getArtistPlaysTrend
+);
+
+router.get(
+  "/artist/analytics/followers",
+  authMiddleware.authArtistMiddleware,
+  analyticsController.getArtistFollowersTrend
+);
+
+router.get(
+  "/artist/analytics/engagement",
+  authMiddleware.authArtistMiddleware,
+  analyticsController.getArtistEngagement
+);
+
+router.get(
+  "/artist/analytics/summary",
+  authMiddleware.authArtistMiddleware,
+  analyticsController.getArtistSummary
+);
+
 // Get all playlists created by the authenticated user (listener or artist)
 // GET /api/music/user/playlist
 router.get(
@@ -138,6 +164,23 @@ router.get(
   "/history",
   authMiddleware.authUserMiddleware,
   musicController.getPlayHistory
+);
+
+// Track like/unlike
+router.post(
+  "/like/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.likeTrack
+);
+router.delete(
+  "/like/:id",
+  authMiddleware.authUserMiddleware,
+  musicController.unlikeTrack
+);
+router.get(
+  "/like/:id/status",
+  authMiddleware.authUserMiddleware,
+  musicController.likeStatus
 );
 
 // Follow system (authenticated users)
