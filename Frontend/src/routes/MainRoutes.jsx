@@ -6,6 +6,7 @@ import Register from '../pages/Register/Register'
 import Search from '../pages/Search/Search'
 import PageNotFound from '../pages/PageNotFound/PageNotFound'
 import ArtistDashboard from '../pages/Artist/ArtistDashboard/ArtistDashboard'
+import ArtistAnalystic from '../pages/Artist/ArtistAnalystic/ArtistAnalystic'
 import UploadMusic from '../pages/Artist/UploadMusic/UploadMusic'
 import CreatePlaylist from '../pages/Artist/CreatePlaylist/CreatePlaylist'
 import ListenerCreatePlaylist from '../pages/Listener/CreatePlaylist/CreatePlaylist'
@@ -71,6 +72,14 @@ const MainRoutes = () => {
               element={
                 <ProtectedRoute requiredRole="artist">
                   <ArtistDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/artist/analytics" 
+              element={
+                <ProtectedRoute requiredRole="artist">
+                  <ArtistAnalystic />
                 </ProtectedRoute>
               } 
             />

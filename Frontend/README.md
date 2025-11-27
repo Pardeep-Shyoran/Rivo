@@ -157,3 +157,26 @@ Cap play history (e.g., last 200–500 entries) and/or set retention windows.
 Allow users to clear history and preferences.
 Use server‑side idempotency for daily streak logging.
 Index carefully for userId + time fields to keep dashboard queries fast.
+
+## Artist Analytics Page
+
+The Artist Analytics page (`/artist/analytics`) provides a high-level performance overview for an artist:
+
+Key stats:
+- Total tracks
+- Total plays (sum of `playCount` on artist tracks)
+- Average plays per track
+- Total playlists
+- Followers count
+
+Sections:
+- Top Tracks (Top 5 by `playCount` with likes & duration)
+- Recent Followers (latest 8 follow events)
+- Insights placeholder (future charts: plays over time, follower growth, geography)
+
+Data sources (current placeholders use existing endpoints):
+- `GET /api/music/artist/musics`
+- `GET /api/music/artist/followers`
+- `GET /api/music/artist/playlist`
+
+Extend by adding new backend endpoints for time‑series plays and geographic breakdown, then replace the placeholder panel with charts components.
