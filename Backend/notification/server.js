@@ -69,76 +69,76 @@ app.listen(PORT, HOST, () => {
     });
 
   // Production keep-alive pings (e.g., Render free plan sleep prevention)
-  // if (process.env.NODE_ENV === 'production') {
-  //   const base = config.NOTIFICATION_SERVICE_URL || '';
-  //   const healthUrl = base ? (base.replace(/\/$/, '') + '/health') : null;
-  //   const reconnectUrl = base ? (base.replace(/\/$/, '') + '/reconnect') : null;
-  //   
-  //   if (healthUrl && reconnectUrl) {
-  //     console.log(`[Keep-Alive] Enabled. Will check health every 8m and trigger reconnect if needed.`);
-  //     
-  //     setInterval(() => {
-  //       // First, check health
-  //       https.get(healthUrl, (res) => {
-  //         let data = '';
-  //         res.on('data', (chunk) => { data += chunk; });
-  //         res.on('end', () => {
-  //           console.log(`[Keep-Alive] Health check status: ${res.statusCode}`);
-  //           
-  //           // If service is degraded (503), trigger reconnection
-  //           if (res.statusCode === 503) {
-  //             console.warn('[Keep-Alive] Service degraded (503), triggering reconnection...');
-  //             
-  //             const postData = '';
-  //             const options = {
-  //               method: 'POST',
-  //               headers: {
-  //                 'Content-Type': 'application/json',
-  //                 'Content-Length': Buffer.byteLength(postData)
-  //               }
-  //             };
-  //             
-  //             const reconnectReq = https.request(reconnectUrl, options, (reconnectRes) => {
-  //               let reconnectData = '';
-  //               reconnectRes.on('data', (chunk) => { reconnectData += chunk; });
-  //               reconnectRes.on('end', () => {
-  //                 console.log(`[Keep-Alive] Reconnect attempt status: ${reconnectRes.statusCode}`);
-  //                 try {
-  //                   const result = JSON.parse(reconnectData);
-  //                   if (result.rabbitmq?.connected) {
-  //                     console.log('[Keep-Alive] ✅ Reconnection successful!');
-  //                   } else {
-  //                     console.warn('[Keep-Alive] ⚠️ Reconnection attempt completed but connection still not established');
-  //                   }
-  //                 } catch (e) {
-  //                   console.error('[Keep-Alive] Failed to parse reconnect response');
-  //                 }
-  //               });
-  //             });
-  //             
-  //             reconnectReq.on('error', (e) => {
-  //               console.error(`[Keep-Alive] Reconnect request failed: ${e.message}`);
-  //             });
-  //             
-  //             reconnectReq.write(postData);
-  //             reconnectReq.end();
-  //           } else if (res.statusCode === 200) {
-  //             try {
-  //               const healthData = JSON.parse(data);
-  //               if (healthData.rabbitmq?.connected) {
-  //                 console.log('[Keep-Alive] ✅ Service healthy, RabbitMQ connected');
-  //               }
-  //             } catch (e) {
-  //               // Ignore parse errors
-  //             }
-  //           }
-  //         });
-  //       }).on('error', (e) => {
-  //         console.error(`[Keep-Alive] Health check failed: ${e.message}`);
-  //       });
-  //     }, 8 * 60 * 1000); // Every 8 minutes (more frequent than 10m)
-  //   } else {
-  //     console.warn('[Keep-Alive] NOTIFICATION_SERVICE_URL not set; keep-alive disabled');
-  //   }
-  // }
+  if (process.env.NODE_ENV === 'production') {
+    const base = config.NOTIFICATION_SERVICE_URL || '';
+    const healthUrl = base ? (base.replace(/\/$/, '') + '/health') : null;
+    const reconnectUrl = base ? (base.replace(/\/$/, '') + '/reconnect') : null;
+    
+    if (healthUrl && reconnectUrl) {
+      console.log(`[Keep-Alive] Enabled. Will check health every 8m and trigger reconnect if needed.`);
+      
+      setInterval(() => {
+        // First, check health
+        https.get(healthUrl, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => {
+            console.log(`[Keep-Alive] Health check status: ${res.statusCode}`);
+            
+            // If service is degraded (503), trigger reconnection
+            if (res.statusCode === 503) {
+              console.warn('[Keep-Alive] Service degraded (503), triggering reconnection...');
+              
+              const postData = '';
+              const options = {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Content-Length': Buffer.byteLength(postData)
+                }
+              };
+              
+              const reconnectReq = https.request(reconnectUrl, options, (reconnectRes) => {
+                let reconnectData = '';
+                reconnectRes.on('data', (chunk) => { reconnectData += chunk; });
+                reconnectRes.on('end', () => {
+                  console.log(`[Keep-Alive] Reconnect attempt status: ${reconnectRes.statusCode}`);
+                  try {
+                    const result = JSON.parse(reconnectData);
+                    if (result.rabbitmq?.connected) {
+                      console.log('[Keep-Alive] ✅ Reconnection successful!');
+                    } else {
+                      console.warn('[Keep-Alive] ⚠️ Reconnection attempt completed but connection still not established');
+                    }
+                  } catch (e) {
+                    console.error('[Keep-Alive] Failed to parse reconnect response');
+                  }
+                });
+              });
+              
+              reconnectReq.on('error', (e) => {
+                console.error(`[Keep-Alive] Reconnect request failed: ${e.message}`);
+              });
+              
+              reconnectReq.write(postData);
+              reconnectReq.end();
+            } else if (res.statusCode === 200) {
+              try {
+                const healthData = JSON.parse(data);
+                if (healthData.rabbitmq?.connected) {
+                  console.log('[Keep-Alive] ✅ Service healthy, RabbitMQ connected');
+                }
+              } catch (e) {
+                // Ignore parse errors
+              }
+            }
+          });
+        }).on('error', (e) => {
+          console.error(`[Keep-Alive] Health check failed: ${e.message}`);
+        });
+      }, 8 * 60 * 1000); // Every 8 minutes (more frequent than 10m)
+    } else {
+      console.warn('[Keep-Alive] NOTIFICATION_SERVICE_URL not set; keep-alive disabled');
+    }
+  }
 });
